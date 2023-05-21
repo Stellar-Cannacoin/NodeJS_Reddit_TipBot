@@ -1,13 +1,12 @@
 require('dotenv').config()
 
-const { CommentStream, InboxStream } = require("snoostorm")
+const { CommentStream } = require("snoostorm")
 const Snoowrap = require('snoowrap')
 const { tipUser, getUserBalance, updateBalance } = require('./db')
-const axios = require('axios')
 const { withdrawToWallet } = require('./withdraw')
 
 const r = new Snoowrap({
-	userAgent: 'some-description',
+	userAgent: 'stellar-reddit-tipbot',
 	clientId: process.env.APP_ID,
 	clientSecret: process.env.API_SECRET,
 	username: process.env.REDDIT_USERNAME,
@@ -17,93 +16,33 @@ const r = new Snoowrap({
 r.config({ continueAfterRatelimitError: true })
 
 const stream = new CommentStream(r, { subreddit: process.env.SUBREDDIT, results: 1 })
-// const messageStream = new InboxStream(r, {filter: 'messages'})
 
 let runtimeDate = new Date();
 
 const messageStream = async () => {
     let inbox = await getInbox()
     inbox.map(async message => {
-        // console.log(message)
-        
         if (message.new) {
             if (message.dest != process.env.REDDIT_USERNAME) {
                 return
             }
-            let botCommand = getBotCommand(message.body)
+            console.log("Direct message new:", message.new)
 
-            if (!botCommand) {
-                return
-            }
-            console.log("Command found: "+botCommand)
-            console.log("Message new: "+message.new)
-
-            switch(botCommand) {
-                case 'balance':
-                    console.log("Message: ", message.id)
-                    let { balances } = await getUserBalance(message.author.name)
-                    createMessage(message.author.name, `TipBot Balance`, `Your current tipbot balance is ${balances.CANNACOIN} CANNACOIN`)
-                    markMessageAsRead(message.id)
-                    setUserFlair(message.author.name, `🪙 ${balances.CANNACOIN} CANNACOIN`)
-                break
-
-                case 'send':
-                    console.log("Message withdrawal: ", message.id)
-                    // let strcommand = '!withdraw 1.00 to GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7'
-                    let command = getBotCommand(message.body)
-                    // console.log("command", command)
-                    let wallet = getWalletAddress(message.body)
-                    let amount = getAmountFromCommand(message.body)
-
-                    let balance = await getUserBalance(message.author.name)
-
-                    if (balance.balances.CANNACOIN < amount) {
-                        createMessage(message.author.name, `Failed to withdraw`, `Not enough funds. \nYour current balance is ${balance.balances.CANNACOIN} CANNACOIN`)
-                        markMessageAsRead(message.id)
-                        return
-                    }
-
-                    console.log("wallet", wallet)
-                    withdrawToWallet("Withdrawal", amount, wallet)
-                    .then(async data => {
-                        console.log("DATA: "+data)
-                        if (data) {
-                            let amount_negative = -Math.abs(amount)
-                            updateBalance(message.author.name, amount_negative, "CANNACOIN")
-                            console.log("Sent funds")
-                            createMessage(message.author.name, `Withdrawal started processing`, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet}`)
-                            markMessageAsRead(message.id)
-                            let balanceA = await getUserBalance(message.author.name)
-                            setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                            return
-                        }
-                        createMessage(message.author.name, `Failed to withdraw`, `Something went wrong, please try again later`)
-                        markMessageAsRead(message.id)
-                    })
-                    .catch(error => {
-                        console.log("ERROR:" +error)
-                    })
-                break
-                
-                case 'deposit':
-                    createMessage(message.author.name, "How to deposit funds to the tipbot", `Send the desired amount to the address ${process.env.WALLET_PUBLIC} using the memo **${message.author.name}**`)
-                    markMessageAsRead(message.id)
-                break
-                case 'help':
-                    createMessage(message.author.name, "TipBot - Help manual ", `## We are happy to see you using our tipbot!\nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)`)
-                    markMessageAsRead(message.id)
-                break
-                default:
-                    // reddit.createMessage(message.author.name, `TipBot`, `Invalid command`)
-                break
-            }
-            
+            executeCommand(message)
             return
         } 
-        
-        // else {
-        //     console.log("Command found: "+botCommand)
-        // }
+        if (message.replies.length > 0) {
+            message.replies.map(messageReplies => {
+                
+                if (messageReplies.new) {
+                    console.log("Sub reply Message new:", message.new)
+                    executeCommand(messageReplies)
+                }
+                markMessageAsRead(messageReplies.id)
+                return
+                
+            })
+        }
     })
 }
 
@@ -121,7 +60,6 @@ stream.on("item", async comment => {
         switch (getRedditCommand) {
             case "!cannatest": 
                 let getTipAmountComment = getTipAmount(comment.body)
-                console.log(getTipAmountComment)
                 if (!getTipAmount) {
                     return
                 }
@@ -129,105 +67,39 @@ stream.on("item", async comment => {
                     let { balances } = await getUserBalance(comment.author.name)
                     if (balances.CANNACOIN < getTipAmountComment) {
                         console.log("Error:", "Not enough funds")
+                        createMessage(message.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
                         return
                     }
                 } catch (error) {
                     console.log("Error:", "Not enough funds")
+                    createMessage(message.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
                     return
                 }
                 
-                console.log(`${comment.author.name} tipped:`, `${parentComment.author.name} ${getTipAmountComment} CANNACOIN`)
                 let balanceA = await getUserBalance(comment.author.name)
                 let balanceB = await getUserBalance(parentComment.author.name)
 
                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
-                console.log("Replying to: "+parentComment.author.name)
-                // return
+
                 if (!tipResponse.upsertedCount) {
                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
                     setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                    setUserFlair(parentComment.author.name, `🪙 ${balanceB.balances.CANNACOIN} CANNACOIN`)
+                    setUserFlair(parentComment.author.name, `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)} CANNACOIN`)
+                    createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
                     return
                 }
                 createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
                 setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
                 setUserFlair(parentComment.author.name, `🪙 ${getTipAmountComment} CANNACOIN`)
-            break
+                createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
+            break
             default: 
                 createComment(comment, `Invalid command`)
-                console.log("Defaulting, nothing to do")
             break
         }
     });
     return
-
-    // console.log("Author: " + parentCommentUser)
-    
-    // console.log("replies: ", comment.replies)
-    // console.log(comment.link_id)
-    // let botReplies = 0;
-    // let comments = await getComments(comment.link_id);
-    // r.getComment(comment.parent_id).fetch().then(parentComment => {
-    //     console.log(parentComment.body);
-    //     console.log(parentComment.author.name);
-    // });
-    // console.log(comments)
-    // await comments.map(subComment => {
-    //     console.log("----------")
-    //     console.log("PAR: ", comment.parent_id)
-    //     // console.log("SUB: ", subComment.id)
-    //     // console.log("PAR: ", comment.link_id)
-    //     // console.log("PAR: ", comment.name)
-    //     console.log("SUB: ", subComment.parent_id)
-    //     if (subComment.id == comment.id) {
-    //         console.log("FOUND COMMENT REPLYING TO", subComment.author.name)
-    //     }
-    // })
-    //     botReplies = 0;
-    //     // let upvotes = comment.ups-comment.downs
-    //     if (subComment.replies < 0) {
-    //         return
-    //     }
-    //     // console.log("Replies: "+JSON.stringify(subComment.replies))
-    //     // console.log("Body: "+subComment.body)
-    //     subComment.replies.map(subReplies => {
-    //         console.log(subReplies.author.name, subReplies.body)
-    //         // console.log(process.env.REDDIT_USERNAME)
-    //         if (subReplies.author.name == process.env.REDDIT_USERNAME) {
-    //             botReplies++
-    //         }
-    //         // console.log("Reply from", JSON.stringify(subReplies.author))
-    //     })
-    //     // console.log(subComment.body)
-    //     // console.log("Bot replies: "+botReplies)
-    // })
-
-    // if (botReplies != 0) {
-    //     // console.log("Bot already replied to: ")
-    //     return
-    // }
-
-    
-
-    // if (!parentCommentUser) {
-    //     parentCommentUser = parentPostUser
-    // }
-
-    // if (!comment.body.includes('!cannatest')) {
-    //     // console.log("DOES NOT INCLUDE")
-    //     return false
-    // }
-
-    // if (parentCommentUser == comment.author.name) {
-    //     console.log("SAME USER", "SKIPPING")
-    //     return
-    // }
-
-    
-    
-    
-    
 })
 
 const getComments = (id) => {
@@ -236,6 +108,7 @@ const getComments = (id) => {
             resolve(r.getSubmission(id).comments)
         } catch (error) {
             console.log(error)
+
         }
         
     })
@@ -249,7 +122,7 @@ const getTipAmount = (string) => {
     return string.match(regex)[1]
 }
 const getWalletAddress = (string) => {
-    let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9]+)/
+    let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
     if (!string.match(regex)) {
         return false
     }
@@ -263,44 +136,142 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!cannatest?|balance|send?|deposit|help)/
-    // console.log(string.match(regex))
+    let regex = /(!cannatest?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
     if (!string.match(regex)) {
         return false
     }
-
-    // if (string.match(regex)[0].includes('!withdraw')) {
-    //     return string.match(regex)[1]
-    // }
     return string.match(regex)[0]
 }
-const getCommentAuthor = (id) => {
-    console.log(id)
-    return new Promise (async resolve => {
-        axios.get(`https://www.reddit.com/api/info.json?id=${id}`)
-        .then(({data}) => {
-            // console.log(data.data.children)
-            if (data.data.children.length == 0) {
-                return resolve(false)
-            }
-            resolve(data.data.children[0].data.author)
-        })
-    })
+
+const getBotCommandFull = (string) => {
+    let regex = /(!cannatest?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
+    if (!string.match(regex)) {
+        return false
+    }
+    return string.match(regex)
 }
 
-const executeCommand = (command) => {
+const executeCommand = async (message) => {
+    if (message.dest != process.env.REDDIT_USERNAME) {
+        return
+    }
+    let botCommandRaw = getBotCommand(message.body)
 
+    if (!botCommandRaw) {
+        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+        markMessageAsRead(message.id)
+        return
+    }
+
+    let botCommand = botCommandRaw.toLowerCase()
+    console.log("Command found:", botCommand)
+
+    switch(botCommand) {
+        case 'balance':
+            let { balances } = await getUserBalance(message.author.name)
+            replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(balances.CANNACOIN).toFixed(7)} CANNACOIN`)
+            markMessageAsRead(message.id)
+            setUserFlair(message.author.name, `🪙 ${balances.CANNACOIN} CANNACOIN`)
+        break
+
+        case 'send':
+            let wallet = getWalletAddress(message.body)
+            let amount = getAmountFromCommand(message.body)
+            if (!wallet || wallet == null) {
+                console.log("Wallet:", wallet)
+                console.log("Amount:", amount)
+                replyToMessage(message.id,`Something went wrong, invalid command`)
+                markMessageAsRead(message.id)
+                return
+            }
+            if (wallet.includes('u/')) {
+                try {
+                    let { balances } = await getUserBalance(message.author.name)
+                    if (balances.CANNACOIN < amount) {
+                        replyToMessage(message.id, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
+                        markMessageAsRead(message.id)
+                        return
+                    }
+                } catch (error) {
+                    replyToMessage(message.id, `Not enough funds. \n  User not found`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                
+                let balanceA = await getUserBalance(message.author.name)
+                let balanceB = await getUserBalance(wallet.split('u/')[1])
+
+                let tipResponse = await tipUser(message.author.name, wallet.split('u/')[1], parseFloat(amount), "CANNACOIN")
+
+                if (!tipResponse.upsertedCount) {
+                    replyToMessage(message.id, `Sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+                    setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    setUserFlair(wallet.split('u/')[1], `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)} CANNACOIN`)
+                    createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                replyToMessage(message.id, `Creating a new account and sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+                setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                setUserFlair(wallet.split('u/')[1], `🪙 ${amount} CANNACOIN`)
+                createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${amount}`)
+                markMessageAsRead(message.id)
+                return
+            }
+
+            let balance = await getUserBalance(message.author.name)
+
+            if (balance.balances.CANNACOIN < amount) {
+                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${balance.balances.CANNACOIN} CANNACOIN`)
+                markMessageAsRead(message.id)
+                return
+            }
+
+            withdrawToWallet("Withdrawal", amount, wallet)
+            .then(async data => {
+                console.log("DATA: "+data)
+                if (data) {
+                    let amount_negative = -Math.abs(amount)
+                    updateBalance(message.author.name, amount_negative, "CANNACOIN")
+                    replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet}`)
+                    markMessageAsRead(message.id)
+
+                    let balanceA = await getUserBalance(message.author.name)
+                    setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    return
+                }
+                replyToMessage(message.id, `Something went wrong, please try again later`)
+                markMessageAsRead(message.id)
+            })
+            .catch(error => {
+                replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
+            })
+        break
+        
+        case 'deposit':
+            replyToMessage(message.id, `Send the desired amount to the address `+'`'+`${process.env.WALLET_PUBLIC}`+'`'+` using the memo `+'`'+`${message.author.name}`+'`')
+            markMessageAsRead(message.id)
+        break
+        case 'help':
+            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            markMessageAsRead(message.id)
+        break
+        default:
+            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            markMessageAsRead(message.id)
+        break
+    }
 }
 
 const createMessage = (user, title, text) => {
     return r.composeMessage({
         to: user,
         subject: title,
-        text: text+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)'
+        text: text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)'
     })
 }
 const createComment = (comment, text) => {
-    comment.reply(text+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+    comment.reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
 }
 const createSubmission = (title, text) => {
     r.getSubreddit(process.env.SUBREDDIT)
@@ -313,7 +284,9 @@ const getInbox = () => {
 const markMessageAsRead = (id) => {
     return r.getMessage(id).markAsRead()
 }
-
+const replyToMessage = (id, text) => {
+    return r.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+}
 const setUserFlair = (user, flair) => {
     r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair})
 }
@@ -324,6 +297,7 @@ module.exports = {
     getComments,
     getTipAmount,
     getBotCommand,
+    getBotCommandFull,
     executeCommand,
     createSubmission,
     createMessage,

@@ -88,46 +88,6 @@ cron.schedule('59 23 * * *', async () => {
 })
 console.log('[Reddit TipBot]:', 'Daily CRON scheduled')
 
-// axios.get(process.env.FETCH_URL)
-// .then (async ({ data }) => {
-//     data.data.children.map(async item => {
-//         let post_date = moment(item.created_utc).format('DD.MM.Y')
-//         let current_date = moment(new Date()).format('DD.MM.Y')
-//         if (post_date != current_date) {
-//             return
-//         }
-//         let post = {
-//             id: item.data.id, 
-//             title: item.data.title,
-//             score: item.data.score,
-//             user: item.data.author,
-//         }
-
-//         if (post.user == "[deleted]") {
-//             return
-//         }
-//         storeDailyScore(post)
-
-//         let comments = await reddit.getComments(post.id);
-//         comments.map(comment => {
-//             let upvotes = comment.ups-comment.downs
-//             if (upvotes > 1) {
-//                 let commentmeta = {
-//                     score: upvotes,
-//                     user: comment.author.name
-//                 }
-//                 if (commentmeta.user == "[deleted]") {
-//                     return
-//                 }
-//                 storeDailyScore(commentmeta)
-//             }
-//         })
-//     })
-// })
-
-// console.log(reddit.getCommand('!canna 420323.1234567')[1])
-
-
 cron.schedule('0 0 1 * *', async () => {
     console.log("Monthly:", "Cronjob started")
 
@@ -154,59 +114,15 @@ console.log('[Reddit TipBot]:', 'Monthly CRON scheduled')
 
 
 async function a () {
-    // let inbox = await reddit.getInbox()
-    // inbox.map(async message => {
-    //     if (message.new) {
-    //         if (message.dest == process.env.REDDIT_USERNAME) {
-    //             return
-    //         }
-    //         let botCommand = getBotCommand(message.body)
-    //         switch(botCommand) {
-    //             case '!balance':
-    //                 console.log("Message: ", message.id)
-    //                 let { balances } = await getUserBalance(message.author.name)
-    //                 reddit.createMessage(message.author.name, `TipBot Balance`, `Your current tipbot balance is ${balances.CANNACOIN} CANNACOIN`)
-    //                 reddit.markMessageAsRead(message.id)
-    //             break
+    let cmnd = reddit.getBotCommandFull('send 1 u/Creepy89')
+    let cmnd2 = reddit.getBotCommandFull('send 1 u/Creepy89')
+    let amount = reddit.getWalletAddress('send 1 u/Creepy89')
+    let amount2 = reddit.getWalletAddress('send 1 GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7')
 
-    //             default:
-    //             break
-    //         }
-            
-    //         return
-    //     }
-    // })
-    // withdrawToWallet("test", 1, "GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7")
-    // .then(data => {
-    //     console.log("DATA: "+data)
-    //     if (data) {
-    //         updateBalance(comment.author.name, 1, "CANNACOIN")
-    //         return
-    //     }
-    // })
-    // .catch(error => {
-    //     console.log("ERROR:" +error)
-    // })
-    // let strcommand = '!withdraw 1.00 to GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7'
-    // let command = reddit.getBotCommand(strcommand)
-    // console.log("command", command)
-    // let wallet = reddit.getWalletAddress(strcommand)
-    // let amount = reddit.getAmountFromCommand(strcommand)
-
-    // console.log("wallet", wallet)
-    // withdrawToWallet("Test withdrawal", amount, wallet)
-    // .then(data => {
-    //     console.log("DATA: "+data)
-    //     if (data) {
-    //         updateBalance(message.author.name, 1, "CANNACOIN")
-    //         return
-    //     }
-    // })
-    // .catch(error => {
-    //     console.log("ERROR:" +error)
-    // })
-
-    // reddit.getBotCommand('!balance')
+    // console.log("command:",cmnd)
+    console.log("wallet:",amount)
+    console.log("wallet:",amount2)
+    // console.log("command:",cmnd2)
 }
 a()
 /**

@@ -154,9 +154,8 @@ const paymentListener = () => {
                     return
                 }
                 console.log("Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
-                createMessage(memo, "Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
                 updateBalance(memo, parseFloat(amount), "CANNACOIN")
-
+                createMessage(memo, "Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
             })
             
         },
