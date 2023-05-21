@@ -1,0 +1,40 @@
+{
+    "name": "@types/eventsource",
+    "version": "1.1.11",
+    "description": "TypeScript definitions for eventsource",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/eventsource",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Scott Lee Davis",
+            "url": "https://github.com/scottleedavis",
+            "githubUsername": "scottleedavis"
+        },
+        {
+            "name": "Ali Afroozeh",
+            "url": "https://github.com/afroozeh",
+            "githubUsername": "afroozeh"
+        },
+        {
+            "name": "Pedro Gámez",
+            "url": "https://github.com/snakedrak",
+            "githubUsername": "snakedrak"
+        },
+        {
+            "name": "Akuukis",
+            "url": "https://github.com/Akuukis",
+            "githubUsername": "Akuukis"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/eventsource"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "2df4dbb36f67d849e4646975d4492e2af663514e410fe20d70e1595a9aca4f2d",
+    "typeScriptVersion": "5.0"
+}
