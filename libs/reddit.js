@@ -24,28 +24,36 @@ let runtimeDate = new Date();
 
 const messageStream = async () => {
     let inbox = await getInbox()
-    inbox.map(async message => {
-        if (message.new) {
-            if (message.dest != process.env.REDDIT_USERNAME) {
-                return
+    inbox.map(async (message, index) => {
+        setTimeout(function () {
+            let balance = record?.balances?.CANNACOIN
+            if (!balance) {
+                balance = "0"
             }
-            console.log("Direct message new:", message.new)
-
-            executeCommand(message)
-            return
-        } 
-        if (message.replies.length > 0) {
-            message.replies.map(messageReplies => {
-                
-                if (messageReplies.new) {
-                    console.log("Sub reply Message new:", message.new)
-                    executeCommand(messageReplies)
+            reddit.setUserFlair(record.user, `🪙 ${balance} CANNACOIN`)
+        
+            if (message.new) {
+                if (message.dest != process.env.REDDIT_USERNAME) {
+                    return
                 }
-                markMessageAsRead(messageReplies.id)
+                console.log("Direct message new:", message.new)
+
+                executeCommand(message)
                 return
-                
-            })
-        }
+            } 
+            if (message.replies.length > 0) {
+                message.replies.map(messageReplies => {
+                    
+                    if (messageReplies.new) {
+                        console.log("Sub reply Message new:", message.new)
+                        executeCommand(messageReplies)
+                    }
+                    markMessageAsRead(messageReplies.id)
+                    return
+                    
+                })
+            }
+        }, 1000*index);
     })
 }
 
