@@ -67,12 +67,12 @@ stream.on("item", async comment => {
                     let { balances } = await getUserBalance(comment.author.name)
                     if (balances.CANNACOIN < getTipAmountComment) {
                         console.log("Error:", "Not enough funds")
-                        createMessage(message.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
+                        createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
                         return
                     }
                 } catch (error) {
                     console.log("Error:", "Not enough funds")
-                    createMessage(message.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
+                    createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
                     return
                 }
                 
