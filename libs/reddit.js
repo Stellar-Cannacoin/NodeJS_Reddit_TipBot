@@ -75,7 +75,15 @@ stream.on("item", async comment => {
                     createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
                     return
                 }
-                
+
+                if (comment.author.name == parentComment.author.name) {
+                    createComment(comment, 'You cannot send a tip to yourself')
+                }
+
+                if (parentComment.author.name == process.env.REDDIT_USERNAME) {
+                    return
+                }
+                 
                 let balanceA = await getUserBalance(comment.author.name)
                 let balanceB = await getUserBalance(parentComment.author.name)
 
@@ -187,11 +195,15 @@ const executeCommand = async (message) => {
             if (!wallet || wallet == null) {
                 console.log("Wallet:", wallet)
                 console.log("Amount:", amount)
-                replyToMessage(message.id,`Something went wrong, invalid command`)
+                replyToMessage(message.id, `Something went wrong, invalid command`)
                 markMessageAsRead(message.id)
                 return
             }
             if (wallet.includes('u/')) {
+                if (message.author.name == wallet.split('u/')[1]) {
+                    replyToMessage(message.id, 'You cannot send a tip to yourself')
+                    return
+                }
                 try {
                     let { balances } = await getUserBalance(message.author.name)
                     if (balances.CANNACOIN < amount) {
