@@ -95,6 +95,7 @@ stream.on("item", async comment => {
 
                 if (comment.author.name == parentComment.author.name) {
                     createComment(comment, 'You cannot send a tip to yourself')
+                    return
                 }
 
                 if (parentComment.author.name == process.env.REDDIT_USERNAME) {
