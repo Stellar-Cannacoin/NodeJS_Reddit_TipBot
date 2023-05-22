@@ -110,6 +110,7 @@ stream.on("item", async comment => {
                 if (parentComment.author.name == process.env.REDDIT_USERNAME) {
                     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
                     setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    setUserFlair(process.env.REDDIT_USERNAME, `🌿 The bot with the pot 🌿`)
                     return
                 }
 
