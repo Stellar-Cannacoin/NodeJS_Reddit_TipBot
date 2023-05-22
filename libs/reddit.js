@@ -15,7 +15,10 @@ const r = new Snoowrap({
 
 r.config({ continueAfterRatelimitError: true })
 
-const stream = new CommentStream(r, { subreddit: process.env.SUBREDDIT, results: 1 })
+const stream = new CommentStream(r, {
+    subreddit: process.env.SUBREDDIT,
+    limit: 10,
+    pollTime: 2000 })
 
 let runtimeDate = new Date();
 
@@ -44,6 +47,20 @@ const messageStream = async () => {
             })
         }
     })
+}
+
+const commentStream = async () => {
+    let comments = await getCommentStream()
+
+    comments.map(async comment => {
+        console.log("comment:", comment.body)
+        if (comment.body == "!cannatest .0042") {
+            r.getComment(comment.id).markAsRead()
+            return
+        }
+        
+    })
+    return comments
 }
 
 stream.on("item", async comment => {
@@ -305,6 +322,9 @@ const createSubmission = (title, text) => {
 const getInbox = () => {
     return r.getInbox({filter: 'messages'})
 }
+const getCommentStream = () => {
+    return r.getInbox({filter: 'comments'})
+}
 const markMessageAsRead = (id) => {
     return r.getMessage(id).markAsRead()
 }
@@ -329,5 +349,6 @@ module.exports = {
     getInbox,
     markMessageAsRead,
     messageStream,
+    commentStream,
     setUserFlair
 }

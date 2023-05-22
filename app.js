@@ -114,14 +114,17 @@ console.log('[Reddit TipBot]:', 'Monthly CRON scheduled')
 
 
 async function a () {
-    let cmnd = reddit.getBotCommandFull('send 1 u/Creepy89')
-    let cmnd2 = reddit.getBotCommandFull('send 1 u/Creepy89')
-    let amount = reddit.getWalletAddress('send 1 u/Creepy89')
-    let amount2 = reddit.getWalletAddress('send 1 GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7')
+    // await reddit.commentStream()
+    // console.log(cmd)
+
+    // let cmnd = reddit.getBotCommandFull('send 1 u/Creepy89')
+    // let cmnd2 = reddit.getBotCommandFull('send 1 u/Creepy89')
+    // let amount = reddit.getWalletAddress('send 1 u/Creepy89')
+    // let amount2 = reddit.getWalletAddress('send 1 GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7')
 
     // console.log("command:",cmnd)
-    console.log("wallet:",amount)
-    console.log("wallet:",amount2)
+    // console.log("wallet:",amount)
+    // console.log("wallet:",amount2)
     // console.log("command:",cmnd2)
 }
 a()
