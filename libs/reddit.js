@@ -104,7 +104,8 @@ stream.on("item", async comment => {
                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
 
                 setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                console.log(`🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                console.log(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                console.log("raw", JSON.stringify(balanceA))
                 /**
                  * If you want to disable tips to the bot, uncomment
                  * the tip function from the syntax below
