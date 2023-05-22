@@ -26,12 +26,6 @@ const messageStream = async () => {
     let inbox = await getInbox()
     inbox.map(async (message, index) => {
         setTimeout(function () {
-            let balance = record?.balances?.CANNACOIN
-            if (!balance) {
-                balance = "0"
-            }
-            reddit.setUserFlair(record.user, `🪙 ${balance} CANNACOIN`)
-        
             if (message.new) {
                 if (message.dest != process.env.REDDIT_USERNAME) {
                     return
