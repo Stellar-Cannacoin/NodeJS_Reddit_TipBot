@@ -208,6 +208,11 @@ const executeCommand = async (message) => {
                 let balanceA = await getUserBalance(message.author.name)
                 let balanceB = await getUserBalance(wallet.split('u/')[1])
 
+                if (!balanceA?.balances?.CANNACOIN || amount > balanceA?.balances?.CANNACOIN ) {
+                    replyToMessage(message.id, `Not enough funds. \n  User not found`)
+                    return
+                }
+
                 let tipResponse = await tipUser(message.author.name, wallet.split('u/')[1], parseFloat(amount), "CANNACOIN")
 
                 if (!tipResponse.upsertedCount) {
