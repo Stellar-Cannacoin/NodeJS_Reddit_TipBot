@@ -97,15 +97,21 @@ stream.on("item", async comment => {
                     createComment(comment, 'You cannot send a tip to yourself')
                     return
                 }
-
-                if (parentComment.author.name == process.env.REDDIT_USERNAME) {
-                    return
-                }
                  
                 let balanceA = await getUserBalance(comment.author.name)
                 let balanceB = await getUserBalance(parentComment.author.name)
 
                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
+
+                /**
+                 * If you want to disable tips to the bot, uncomment
+                 * the tip function from the syntax below
+                 */
+                if (parentComment.author.name == process.env.REDDIT_USERNAME) {
+                    createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+                    setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    return
+                }
 
                 if (!tipResponse.upsertedCount) {
                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
