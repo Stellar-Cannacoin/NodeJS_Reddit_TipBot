@@ -95,7 +95,7 @@ stream.on("item", async comment => {
 
             break
             default: 
-                createComment(comment, `Invalid command`)
+                // createComment(comment, `Invalid command`)
             break
         }
     });
