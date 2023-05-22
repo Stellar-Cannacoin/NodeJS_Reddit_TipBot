@@ -17,8 +17,8 @@ r.config({ continueAfterRatelimitError: true })
 
 const stream = new CommentStream(r, {
     subreddit: process.env.SUBREDDIT,
-    limit: 10,
-    pollTime: 6000 })
+    limit: 1,
+    pollTime: 10000 })
 
 let runtimeDate = new Date();
 
@@ -103,7 +103,7 @@ stream.on("item", async comment => {
 
                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
 
-                setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
                 console.log(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
                 console.log("raw", JSON.stringify(balanceA))
                 /**
@@ -113,20 +113,20 @@ stream.on("item", async comment => {
                 if (parentComment.author.name == process.env.REDDIT_USERNAME) {
                     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
                     // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                    setUserFlair(process.env.REDDIT_USERNAME, `🌿 The bot with the pot 🌿`)
+                    // setUserFlair(process.env.REDDIT_USERNAME, `🌿 The bot with the pot 🌿`)
                     return
                 }
 
                 if (!tipResponse.upsertedCount) {
                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
                     // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                    setUserFlair(parentComment.author.name, `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)} CANNACOIN`)
+                    // setUserFlair(parentComment.author.name, `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)} CANNACOIN`)
                     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
                     return
                 }
                 createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
                 // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                setUserFlair(parentComment.author.name, `🪙 ${getTipAmountComment} CANNACOIN`)
+                // setUserFlair(parentComment.author.name, `🪙 ${getTipAmountComment} CANNACOIN`)
                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
             break
@@ -209,11 +209,9 @@ const executeCommand = async (message) => {
             if (!balances || !balances.CANNACOIN) {
                 redditBalance = "0"
             }
-            setTimeout(function () {
-                replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(7)} CANNACOIN`)
-                markMessageAsRead(message.id)
-                setUserFlair(message.author.name, `🪙 ${redditBalance} CANNACOIN`)
-            }, 2000);
+            replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(7)} CANNACOIN`)
+            markMessageAsRead(message.id)
+            // setUserFlair(message.author.name, `🪙 ${redditBalance} CANNACOIN`)
             
         break
 
@@ -257,15 +255,15 @@ const executeCommand = async (message) => {
 
                 if (!tipResponse.upsertedCount) {
                     replyToMessage(message.id, `Sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
-                    setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                    setUserFlair(wallet.split('u/')[1], `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)} CANNACOIN`)
+                    // setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    // setUserFlair(wallet.split('u/')[1], `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)} CANNACOIN`)
                     createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
                     markMessageAsRead(message.id)
                     return
                 }
                 replyToMessage(message.id, `Creating a new account and sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
-                setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                setUserFlair(wallet.split('u/')[1], `🪙 ${amount} CANNACOIN`)
+                // setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                // setUserFlair(wallet.split('u/')[1], `🪙 ${amount} CANNACOIN`)
                 createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${amount}`)
                 markMessageAsRead(message.id)
                 return
@@ -289,7 +287,7 @@ const executeCommand = async (message) => {
                     markMessageAsRead(message.id)
 
                     let balanceA = await getUserBalance(message.author.name)
-                    setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    // setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
                     return
                 }
                 replyToMessage(message.id, `Something went wrong, please try again later`)

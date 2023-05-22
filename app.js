@@ -112,22 +112,21 @@ cron.schedule('0 0 1 * *', async () => {
 })
 console.log('[Reddit TipBot]:', 'Monthly CRON scheduled')
 
+cron.schedule('0 */4 * * *', async () => {
+    console.log()
+    let records = await fetchRewardRecords()
+    records.map((record, index) => {
+        setTimeout(function () {
+            let balance = record?.balances?.CANNACOIN
+            if (!balance) {
+                balance = "0"
+            }
+            reddit.setUserFlair(record.user, `🪙 ${balance} CANNACOIN`)
+        }, 1000*index);
+    })
+})
+console.log('[Reddit TipBot]:', 'Balance listener running')
 
-async function a () {
-    // await reddit.commentStream()
-    // console.log(cmd)
-
-    // let cmnd = reddit.getBotCommandFull('send 1 u/Creepy89')
-    // let cmnd2 = reddit.getBotCommandFull('send 1 u/Creepy89')
-    // let amount = reddit.getWalletAddress('send 1 u/Creepy89')
-    // let amount2 = reddit.getWalletAddress('send 1 GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7')
-
-    // console.log("command:",cmnd)
-    // console.log("wallet:",amount)
-    // console.log("wallet:",amount2)
-    // console.log("command:",cmnd2)
-}
-a()
 /**
  * Message Stream job
  */
