@@ -169,9 +169,16 @@ const executeCommand = async (message) => {
     switch(botCommand) {
         case 'balance':
             let { balances } = await getUserBalance(message.author.name)
-            replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(balances.CANNACOIN).toFixed(7)} CANNACOIN`)
-            markMessageAsRead(message.id)
-            setUserFlair(message.author.name, `🪙 ${balances.CANNACOIN} CANNACOIN`)
+            let redditBalance = balances?.CANNACOIN
+            if (!balances || !balances.CANNACOIN) {
+                redditBalance = "0"
+            }
+            setTimeout(function () {
+                replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(7)} CANNACOIN`)
+                markMessageAsRead(message.id)
+                setUserFlair(message.author.name, `🪙 ${redditBalance} CANNACOIN`)
+            }, 2000);
+            
         break
 
         case 'send':
