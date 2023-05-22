@@ -18,7 +18,7 @@ r.config({ continueAfterRatelimitError: true })
 const stream = new CommentStream(r, {
     subreddit: process.env.SUBREDDIT,
     limit: 10,
-    pollTime: 2000 })
+    pollTime: 6000 })
 
 let runtimeDate = new Date();
 
