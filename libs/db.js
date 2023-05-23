@@ -66,14 +66,12 @@ const fetchRewardStats = async () => {
 
 const updateBalance = (user, amount, token) => {
     return new Promise(async resolve => {
-        // let amount_negative = 
         let balanceCurrency = `balances.${token}`
 
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
         const resultsA = await collection.updateOne({user: user}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
-        console.log(resultsA)
         resolve(resultsA)
     })
 }
@@ -88,7 +86,6 @@ const tipUser = (from, to, amount, token) => {
         const collection = db.collection('users')
         const resultsA = await collection.updateOne({user: from}, {$inc: { [balanceCurrency]: amount_negative }})
         const resultsB = await collection.updateOne({user: to}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
-        console.log(resultsB)
         resolve(resultsB)
     })
 }

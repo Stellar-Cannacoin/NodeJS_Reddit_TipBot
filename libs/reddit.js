@@ -4,6 +4,7 @@ const { CommentStream, InboxStream } = require("snoostorm")
 const Snoowrap = require('snoowrap')
 const { tipUser, getUserBalance, updateBalance } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
+const { logger } = require('./util')
 
 const r = new Snoowrap({
 	userAgent: 'stellar-reddit-tipbot',
@@ -21,19 +22,23 @@ const stream = new CommentStream(r, {
     pollTime: 10000
 })
 /**
- * Uncomment to use Comment stream
+ * Uncomment to use CommentStream
  * You need to also uncomment the 'messageStream' call from `app.js`
  * If not, you will hit rate limits
  */
-// const inboxStream = new CommentStream(r, {
-//     subreddit: process.env.SUBREDDIT,
-//     limit: 1,
-//     pollTime: 10000
-// })
 
-// inboxStream.on("item", async message => {
-//     console.log("message", message)
-// })
+/**
+    // Start inboxStream
+    const inboxStream = new CommentStream(r, {
+        subreddit: process.env.SUBREDDIT,
+        limit: 1,
+        pollTime: 10000
+    })
+
+    inboxStream.on("item", async message => {
+        console.log("message", message)
+    })
+**/
 
 let runtimeDate = new Date();
 
@@ -45,7 +50,7 @@ const messageStream = async () => {
                 if (message.dest != process.env.REDDIT_USERNAME) {
                     return
                 }
-                console.log("Direct message new:", message.new)
+                logger(`Received message`)
 
                 executeCommand(message)
                 return
@@ -54,7 +59,7 @@ const messageStream = async () => {
                 message.replies.map(messageReplies => {
                     
                     if (messageReplies.new) {
-                        console.log("Sub reply Message new:", message.new)
+                        logger("Received message reply")
                         executeCommand(messageReplies)
                     }
                     markMessageAsRead(messageReplies.id)
@@ -70,7 +75,6 @@ const commentStream = async () => {
     let comments = await getCommentStream()
 
     comments.map(async comment => {
-        console.log("comment:", comment.body)
         if (comment.body == "!cannatest .0042") {
             r.getComment(comment.id).markAsRead()
             return
@@ -100,12 +104,12 @@ stream.on("item", async comment => {
                 try {
                     let { balances } = await getUserBalance(comment.author.name)
                     if (balances.CANNACOIN < getTipAmountComment) {
-                        console.log("Error:", "Not enough funds")
+                        logger("Error. Not enough funds")
                         createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
                         return
                     }
                 } catch (error) {
-                    console.log("Error:", "Not enough funds")
+                    logger("Error. Not enough funds")
                     createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
                     return
                 }
@@ -119,36 +123,27 @@ stream.on("item", async comment => {
                 let balanceB = await getUserBalance(parentComment.author.name)
 
                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
-
-                // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                console.log(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                console.log("raw", JSON.stringify(balanceA))
+                
                 /**
                  * If you want to disable tips to the bot, uncomment
                  * the tip function from the syntax below
                  */
                 if (parentComment.author.name == process.env.REDDIT_USERNAME) {
-                    createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
-                    // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                    // setUserFlair(process.env.REDDIT_USERNAME, `🌿 The bot with the pot 🌿`)
+                    createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
                     return
                 }
 
                 if (!tipResponse.upsertedCount) {
-                    createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
-                    // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                    // setUserFlair(parentComment.author.name, `🪙 ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)} CANNACOIN`)
+                    createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
                     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
                     return
                 }
-                createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)//+'\n\n\n[`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
-                // setUserFlair(comment.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                // setUserFlair(parentComment.author.name, `🪙 ${getTipAmountComment} CANNACOIN`)
+                createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
             break
             default: 
-                // createComment(comment, `Invalid command`)
+                logger(`Invalid command`)
             break
         }
     });
@@ -160,7 +155,7 @@ const getComments = (id) => {
         try {
             resolve(r.getSubmission(id).comments)
         } catch (error) {
-            console.log(error)
+            logger(`Error. ${error}`)
 
         }
         
@@ -217,7 +212,6 @@ const executeCommand = async (message) => {
     }
 
     let botCommand = botCommandRaw.toLowerCase()
-    console.log("Command found:", botCommand)
 
     switch(botCommand) {
         case 'balance':
@@ -236,8 +230,6 @@ const executeCommand = async (message) => {
             let wallet = getWalletAddress(message.body)
             let amount = getAmountFromCommand(message.body)
             if (!wallet || wallet == null) {
-                console.log("Wallet:", wallet)
-                console.log("Amount:", amount)
                 replyToMessage(message.id, `Something went wrong, invalid command`)
                 markMessageAsRead(message.id)
                 return
@@ -296,7 +288,6 @@ const executeCommand = async (message) => {
 
             withdrawToWallet("Withdrawal", amount, wallet)
             .then(async data => {
-                console.log("DATA: "+data)
                 if (data) {
                     let amount_negative = -Math.abs(amount)
                     updateBalance(message.author.name, amount_negative, "CANNACOIN")

@@ -1,16 +1,15 @@
 /**
- * stellar.js
- * Handles all Stellar Blockchain transactions &
- * check-in methods, likev verify tx hash
+ * withdraw.js
+ * Handles withdrawal of user funds on Stellar Blockchain,
+ * traansfers from custodial wallet (this bot) to an non-custodial
+ * wallet
  */
 require('dotenv').config()
 
 const { tokens } = require(`../content/tokens`);
 const { Keypair, TimeoutInfinite, StrKey } = require('stellar-base');
 const stellar = require('stellar-sdk');
-const { updateBalance } = require('./db');
-// const { createMessage, a } = require('./reddit');
-// const { appLogger } = require('./logger');
+const { isFeeError } = require('./stellar');
 
 const server = new stellar.Server("https://horizon.stellar.org");
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY);
@@ -19,19 +18,11 @@ const withdrawToWallet = (memo, amount, wallet) => {
     return new Promise((resolve, reject) => {
 
         if (!isValidAddress(wallet)) {
-            console.log("INVALID WALLET "+wallet)
             return resolve(false)
         }
-        // console.log("WITHDRAWAL STARTED: "+JSON.stringify(tokens["CANNACOIN"]))
-        // return
 
         let asset = tokens["CANNACOIN"];
         let stellarAsset = new stellar.Asset(asset.asset_code, asset.asset_issuer)
-
-        // if (asset.asset_code == "XLM") {
-        //     stellarAsset = new stellar.Asset.native()
-        //     return false
-        // }
 
         server.loadAccount(issuerPair.publicKey())
         .then(function (source) {
@@ -51,17 +42,15 @@ const withdrawToWallet = (memo, amount, wallet) => {
             return server.submitTransaction(transaction)
         })
         .then(async (data) => {
-            console.log(data)
             resolve(true)
         })
         .catch(async (error) => {
-            //appLogger('error', error)
-            console.log(error)
-            if (!error.config.data) {
+            if (!isFeeError(error)) {
                 return resolve(error)
             }
             /**
              * Catch transaction fails due to fees
+             * Resubmits the tx to the chain with a higher fee
              */
             let bumpTransaction = await feeBumpTransaction(error, issuerPair);
             if (!bumpTransaction) {
@@ -90,19 +79,9 @@ const feeBumpTransaction = (error) => {
         }).then(() => {
             resolve(true)
         }).catch(error => {
-            //appLogger('error', error)
             resolve(false)
         });
     })
-}
-
-const isFeeError = (error) => {
-    return (
-      error.response !== undefined &&
-      error.status === 400 &&
-      error.extras &&
-      error.extras.result_codes.transaction === sdk.TX_INSUFFICIENT_FEE
-    );
 }
 
 const isValidAddress = (address) => {

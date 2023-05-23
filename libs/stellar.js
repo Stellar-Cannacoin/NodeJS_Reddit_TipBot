@@ -10,8 +10,6 @@ const { Keypair, TimeoutInfinite, StrKey } = require('stellar-base');
 const stellar = require('stellar-sdk');
 const { updateBalance } = require('./db');
 const { createMessage } = require('./reddit');
-// const { createMessage, a } = require('./reddit');
-// const { appLogger } = require('./logger');
 
 const server = new stellar.Server("https://horizon.stellar.org");
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY);
@@ -165,25 +163,10 @@ const paymentListener = () => {
     })
 }
 
-// const validateAsset = (client, command, target) => {
-//     // let currency = command.currency;
-//     console.log(JSON.stringify(command))
-//     // console.log("CURRENCY: "+currency)
-//     // let token = currency.toUpperCase();
-//     // console.log("TOKEN: "+token)
-//     // if (!tokens[command.currency]) {
-//     //     client.say(target, `Invalid currency, currency supported: `);
-//     //     for (key in tokens) {
-//     //         client.say(target, `💰 - ${key}`);
-//     //     }
-//     //     return false;
-//     // }
-//     return true;
-// }
-
 module.exports = { 
     startWalletListener,
     depositToWallet,
     isValidAddress,
+    isFeeError,
     paymentListener
 };
