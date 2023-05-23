@@ -3,20 +3,16 @@ require('dotenv').config()
 const axios = require('axios')
 const cron = require('node-cron');
 
-// const { CommentStream } = require("snoostorm")
-// const Snoowrap = require('snoowrap')
-// const Snoostorm = require('snoostorm')
 const reddit = require('./libs/reddit')
 const { calculateRewardPerUser } = require('./libs/reward')
-const { storeDailyScore, fetchRewardRecords, resetScore, tipUser, distributeReward, fetchRewardStats, getUserBalance, updateBalance } = require('./libs/db')
+const { storeDailyScore, fetchRewardRecords, distributeReward, fetchRewardStats } = require('./libs/db')
 
 const fs = require('fs');
 const moment = require('moment');
-const { depositToWallet, withdrawToWallet, paymentListener } = require('./libs/stellar');
+const { paymentListener } = require('./libs/stellar');
+const { logger } = require('./libs/util');
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
-    
-
 
 // const r = new Snoowrap({
 // 	userAgent: 'some-description',
@@ -32,22 +28,13 @@ const runtimeFile = require(fileName)
 //     console.log(comment)
 // })
 
+logger('Tipbot is starting')
 
 /**
- * Run cronjob every 24 hour
- * Fetch JSON from /new
- * Check timestamp @date
- * Insert row into db
- * 
- * if endOfMonth
- * Run payout
- * Post to subreddit that payouts are being made /w info about moving funds in 30 days
+ * Collect user's karma every 24 hours
  */
-
-console.log('[Reddit TipBot]:', 'Started')
-
 cron.schedule('59 23 * * *', async () => {
-    console.log("Daily:", "Cronjob started")
+    logger("Daily cronjob started")
 
     axios.get(process.env.FETCH_URL)
     .then (async ({ data }) => {
@@ -86,10 +73,14 @@ cron.schedule('59 23 * * *', async () => {
         })
     })
 })
-console.log('[Reddit TipBot]:', 'Daily CRON scheduled')
+logger('Daily CRON scheduled')
 
+
+/**
+ * Monthly payout rutine
+ */
 cron.schedule('0 0 1 * *', async () => {
-    console.log("Monthly:", "Cronjob started")
+    logger("Monthly cronjob started")
 
     let { karma } = await fetchRewardStats()
     let records = await fetchRewardRecords()
@@ -98,22 +89,26 @@ cron.schedule('0 0 1 * *', async () => {
     records.map(record => {
         distributeReward(record.user, reward, "CANNACOIN")
     })
-    console.log("Ran monthly payout")
 
     runtimeFile.count++
     runtimeFile.lastrun = new Date()
     
     fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(err) {
-        if (err) { 
-            return console.log(err)
+        if (error) { 
+            return logger(`Error. ${error}`)
         }
     })
-    reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
-})
-console.log('[Reddit TipBot]:', 'Monthly CRON scheduled')
+    logger("Ran monthly payout")
 
+    reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
+    logger("Posted to Reddit")
+})
+logger('Monthly CRON scheduled')
+
+/**
+ * Set user flairs every 4th hour
+ */
 cron.schedule('0 */4 * * *', async () => {
-    console.log()
     let records = await fetchRewardRecords()
     records.map((record, index) => {
         setTimeout(function () {
@@ -125,21 +120,19 @@ cron.schedule('0 */4 * * *', async () => {
         }, 1000*index);
     })
 })
-console.log('[Reddit TipBot]:', 'Balance listener running')
+logger('Balance listener running')
 
 /**
  * Message Stream job
  */
 cron.schedule('* * * * *', async () => {
-    console.log("Checking messages")
     reddit.messageStream()
 })
 
 /**
  * Stellar payment listener
  */
+logger('Payment listener running')
 paymentListener()
-console.log('[Reddit TipBot]:', 'Payment listener running')
 
-
-console.log('[Reddit TipBot]:', 'Running')
+logger('TipBot is running')
