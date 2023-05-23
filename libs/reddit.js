@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-const { CommentStream } = require("snoostorm")
+const { CommentStream, InboxStream } = require("snoostorm")
 const Snoowrap = require('snoowrap')
 const { tipUser, getUserBalance, updateBalance } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
@@ -18,7 +18,22 @@ r.config({ continueAfterRatelimitError: true })
 const stream = new CommentStream(r, {
     subreddit: process.env.SUBREDDIT,
     limit: 1,
-    pollTime: 10000 })
+    pollTime: 10000
+})
+/**
+ * Uncomment to use Comment stream
+ * You need to also uncomment the 'messageStream' call from `app.js`
+ * If not, you will hit rate limits
+ */
+// const inboxStream = new CommentStream(r, {
+//     subreddit: process.env.SUBREDDIT,
+//     limit: 1,
+//     pollTime: 10000
+// })
+
+// inboxStream.on("item", async message => {
+//     console.log("message", message)
+// })
 
 let runtimeDate = new Date();
 
