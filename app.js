@@ -14,20 +14,6 @@ const { logger } = require('./libs/util');
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
-// const r = new Snoowrap({
-// 	userAgent: 'some-description',
-// 	clientId: process.env.APP_ID,
-// 	clientSecret: process.env.API_SECRET,
-// 	username: process.env.REDDIT_USERNAME,
-// 	password: process.env.REDDIT_PASSWORD
-// })
-
-// const stream = new CommentStream(r, { subreddit: "stashapp", results: 25 })
-
-// stream.on("item", comment => {
-//     console.log(comment)
-// })
-
 logger('Tipbot is starting')
 
 /**

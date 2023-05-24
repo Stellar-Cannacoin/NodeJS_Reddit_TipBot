@@ -1,7 +1,8 @@
 require('dotenv').config()
 
 const logger = (message) => {
-    return console.log(`[${process.env.REDDIT_USERNAME}]:`, message)
+    console.log(`[${process.env.REDDIT_USERNAME}]:`, message)
+    return message
 }
 
 module.exports = {

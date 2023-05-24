@@ -9,7 +9,7 @@ require('dotenv').config()
 const { tokens } = require(`../content/tokens`);
 const { Keypair, TimeoutInfinite, StrKey } = require('stellar-base');
 const stellar = require('stellar-sdk');
-const { isFeeError } = require('./stellar');
+const { isFeeError, isValidAddress } = require('./stellar');
 
 const server = new stellar.Server("https://horizon.stellar.org");
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY);
@@ -84,16 +84,6 @@ const feeBumpTransaction = (error) => {
     })
 }
 
-const isValidAddress = (address) => {
-    let validAddress = /([A-Za-z]+([0-9]+[A-Za-z]+)+)/.test(address);
-    let validAddressChain = StrKey.isValidEd25519PublicKey(address);
-    if (validAddress && validAddressChain) {
-        return true;
-    }
-    return false;
-}
-
 module.exports = { 
-    withdrawToWallet,
-    isValidAddress,
+    withdrawToWallet
 };

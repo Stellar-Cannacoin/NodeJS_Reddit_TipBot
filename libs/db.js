@@ -48,7 +48,6 @@ const fetchRewardStats = async () => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        // const results = await collection.find().toArray()
         const results = await collection.aggregate(
             [
                 {

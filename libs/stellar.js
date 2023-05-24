@@ -22,87 +22,6 @@ const depositToWallet = (user) => {
     return `Send payment to the address '${issuerPair.publicKey()}' with the memo '${user}'`
 }
 
-const withdrawToWallet = (memo, amount, wallet) => {
-    return new Promise((resolve, reject) => {
-
-        if (!isValidAddress(wallet)) {
-            console.log("INVALID WALLET "+wallet)
-            return resolve(false)
-        }
-        // console.log("WITHDRAWAL STARTED: "+JSON.stringify(tokens["CANNACOIN"]))
-        // return
-
-        let asset = tokens["CANNACOIN"];
-        let stellarAsset = new stellar.Asset(asset.asset_code, asset.asset_issuer)
-
-        // if (asset.asset_code == "XLM") {
-        //     stellarAsset = new stellar.Asset.native()
-        //     return false
-        // }
-
-        server.loadAccount(issuerPair.publicKey())
-        .then(function (source) {
-            var transaction = new stellar.TransactionBuilder(source, {
-                fee: "50000",
-                networkPassphrase: stellar.Networks.PUBLIC,
-            })
-            .addOperation(stellar.Operation.payment({
-                destination: wallet,
-                amount: parseFloat(amount).toFixed(7),
-                asset: stellarAsset
-            }))
-            .addMemo(stellar.Memo.text(memo))
-            .setTimeout(TimeoutInfinite)
-            .build();
-            transaction.sign(issuerPair)
-            return server.submitTransaction(transaction)
-        })
-        .then(async (data) => {
-            console.log(data)
-            resolve(true)
-        })
-        .catch(async (error) => {
-            //appLogger('error', error)
-            console.log(error)
-            if (!error.config.data) {
-                return resolve(error)
-            }
-            /**
-             * Catch transaction fails due to fees
-             */
-            let bumpTransaction = await feeBumpTransaction(error, issuerPair);
-            if (!bumpTransaction) {
-                return resolve(bumpTransaction)
-            }
-            resolve(true)
-        });
-    })
-};
-
-const feeBumpTransaction = (error) => {
-    return new Promise((resolve, reject) => {
-        const lastTx = new stellar.TransactionBuilder.fromXDR(decodeURIComponent(error.config.data.split('tx=')[1]), stellar.Networks.PUBLIC);
-
-        server.submitTransaction(lastTx).catch(function (error) {
-            if (isFeeError(error)) {
-                let bump = new stellar.TransactionBuilder.buildFeeBumpTransaction(
-                    issuerPair,
-                    "50000" * 10,
-                    lastTx,
-                    stellar.Networks.PUBLIC
-                );
-                bump.sign(issuerPair);
-                return server.submitTransaction(bump);
-            }
-        }).then(() => {
-            resolve(true)
-        }).catch(error => {
-            //appLogger('error', error)
-            resolve(false)
-        });
-    })
-}
-
 const isFeeError = (error) => {
     return (
       error.response !== undefined &&
@@ -122,45 +41,49 @@ const isValidAddress = (address) => {
 }
 
 const paymentListener = () => {
-    console.log("Listening to address:", issuerPair.publicKey())
-    server
-    .transactions()
-    .forAccount(issuerPair.publicKey())
-    .cursor('now')
-    .limit(20)
-    .stream({
-        onmessage: (payment) => {
-            let { memo, hash } = payment
-            if (!memo) {
-                console.log("Missing memo")
-                return;
-            }
-
-            server.operations()
-            .forTransaction(hash)
-            .call()
-            .then(async (operation) => {
-                if (operation.records[0].type_i != 1) {
-                    console.log("Not a payment", operation.id)
-                    return
+    return new Promise((resolve, reject) => {
+        try {
+            server
+            .transactions()
+            .forAccount(issuerPair.publicKey())
+            .cursor('now')
+            .limit(20)
+            .stream({
+                onmessage: (payment) => {
+                    let { memo, hash } = payment
+                    if (!memo) {
+                        return;
+                    }
+        
+                    server.operations()
+                    .forTransaction(hash)
+                    .call()
+                    .then(async (operation) => {
+                        if (operation.records[0].type_i != 1) {
+                            return
+                        }
+        
+                        let { asset_code, asset_issuer, asset_type, amount, source_account, to } = operation.records[0]
+                        let asset = `${asset_code}:${asset_issuer}`
+        
+                        if (to != issuerPair.publicKey() || source_account == issuerPair.publicKey() || asset != "CANNACOIN:GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ" ) {
+                            return
+                        }
+                        updateBalance(memo, parseFloat(amount), "CANNACOIN")
+                        createMessage(memo, "Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
+                    })
+                    
+                },
+                onerror: (error) => { 
+                    return error
                 }
-
-                let { asset_code, asset_issuer, asset_type, amount, source_account, to } = operation.records[0]
-                let asset = `${asset_code}:${asset_issuer}`
-
-                if (to != issuerPair.publicKey() || source_account == issuerPair.publicKey() || asset != "CANNACOIN:GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ" ) {
-                    return
-                }
-                console.log("Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
-                updateBalance(memo, parseFloat(amount), "CANNACOIN")
-                createMessage(memo, "Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
             })
-            
-        },
-        onerror: (error) => { 
-            return error
+            resolve(true)
+        } catch (error) {
+            reject(error)
         }
     })
+    
 }
 
 module.exports = { 
