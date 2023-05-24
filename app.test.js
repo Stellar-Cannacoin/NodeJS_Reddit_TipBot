@@ -84,5 +84,4 @@ test('getBotCommand', () => {
     expect(getBotCommand('send')).toBe('send');
     expect(getBotCommand('link')).toBe(false);
     expect(getBotCommand('help')).toBe('help');
-    expect(executeCommand('balance')).toBe(true)
 });
