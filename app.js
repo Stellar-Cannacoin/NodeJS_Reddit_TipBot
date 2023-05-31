@@ -19,7 +19,6 @@ cron.schedule('59 23 * * *', async () => {
 })
 logger('Daily CRON scheduled')
 
-
 /**
  * Monthly payout routine
  */

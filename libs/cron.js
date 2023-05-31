@@ -10,8 +10,7 @@ const { storeDailyScore, fetchRewardRecords, distributeReward, fetchRewardStats,
 const fs = require('fs');
 const moment = require('moment');
 const { logger } = require('./util');
-const fileName = `${__dirname}/../data/runtime.json`
-console.log(``)
+const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
 const karmaPayout = async () => {
@@ -28,11 +27,12 @@ const karmaPayout = async () => {
 
         runtimeFile.count++
         runtimeFile.lastrun = new Date()
+        console.log("karma",runtimeFile)
         
         fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(error) {
             if (error) { 
                 logger(`Error. ${error}`)
-                return resolve(false)
+                return reject(error)
             }
         })
         logger("Ran monthly payout")
@@ -42,12 +42,13 @@ const karmaPayout = async () => {
             users: records.length,
             totalamount: reward*records.length,
             payout: reward
+        }).then(data => {
+            // reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
+            logger("Posted to Reddit")
+            resolve(true)
+        }).catch(error => {
+            reject(error)
         })
-        
-
-        reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
-        logger("Posted to Reddit")
-        resolve(true)
     })
 }
 
@@ -74,7 +75,7 @@ const collectKarma = async () => {
                         console.log(`Found ${item.data.num_comments} comments`)
                     }
 
-                    let blacklist = require(`${__dirname}/../data/blacklist.json`)
+                    let blacklist = require('./data/blacklist.json')
 
                     if (blacklist[item.data.author]) {
                         return
