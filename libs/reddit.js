@@ -1,13 +1,13 @@
 require('dotenv').config()
 
-const { CommentStream, InboxStream } = require("snoostorm")
+const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
 const { tipUser, getUserBalance, updateBalance, botLogger } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger } = require('./util')
 
 const r = new Snoowrap({
-	userAgent: 'stellarRedditTipbot',
+	userAgent: process.env.USER_AGENT,
 	clientId: process.env.APP_ID,
 	clientSecret: process.env.API_SECRET,
 	username: process.env.REDDIT_USERNAME,
@@ -18,7 +18,7 @@ r.config({ continueAfterRatelimitError: true })
 
 const stream = new CommentStream(r, {
     subreddit: process.env.SUBREDDIT,
-    limit: 1,
+    limit: 10,
     pollTime: 10000
 })
 /**
