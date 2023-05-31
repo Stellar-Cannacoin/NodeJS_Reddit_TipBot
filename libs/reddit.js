@@ -16,11 +16,11 @@ const r = new Snoowrap({
 
 r.config({ continueAfterRatelimitError: true })
 
-const stream = new CommentStream(r, {
-    subreddit: process.env.SUBREDDIT,
-    limit: 1,
-    pollTime: 50000
-})
+// const stream = new CommentStream(r, {
+//     subreddit: process.env.SUBREDDIT,
+//     limit: 1,
+//     pollTime: 20000
+// })
 /**
  * Uncomment to use CommentStream
  * You need to also uncomment the 'messageStream' call from `app.js`
