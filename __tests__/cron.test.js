@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-const { collectKarma } = require('../libs/cron')
+const { collectKarma, karmaPayout } = require('../libs/cron')
 
 /**
  * Test CRON
@@ -10,3 +10,9 @@ test('collectKarma', () => {
         expect(data).toBe(true)
     });
 });
+
+test('payoutKarma', () => {
+    return karmaPayout().then(async (data) => {
+        expect(data).toBe(true)
+    });
+})

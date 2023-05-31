@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, InboxStream } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger } = require('./util')
 
@@ -140,7 +140,13 @@ stream.on("item", async comment => {
                     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
                     return
                 }
-
+                botLogger({
+                    type: "tip",
+                    from: comment.author.name,
+                    to: parentComment.author.name,
+                    amount: getTipAmountComment,
+                    ts: new Date()
+                })
                 if (!tipResponse.upsertedCount) {
                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
                     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
@@ -178,7 +184,8 @@ const getTipAmount = (string) => {
     return string.match(regex)[1]
 }
 const getWalletAddress = (string) => {
-    let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
+    // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
+    let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
     if (!string.match(regex)) {
         return false
     }
