@@ -74,7 +74,7 @@ const collectKarma = async () => {
                         console.log(`Found ${item.data.num_comments} comments`)
                     }
 
-                    let blacklist = require('../data/blacklist.json')
+                    let blacklist = require(`${__dirname}/../data/blacklist.json`)
 
                     if (blacklist[item.data.author]) {
                         return
