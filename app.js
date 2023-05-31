@@ -49,13 +49,13 @@ logger('Balance listener running')
  * Message Stream job
  */
 cron.schedule('* * * * *', async () => {
-    reddit.messageStream()
+    // reddit.messageStream()
 })
 
 /**
  * Stellar payment listener
  */
 logger('Payment listener running')
-paymentListener()
+// paymentListener()
 
 logger('TipBot is running')

@@ -92,77 +92,77 @@ const commentStream = async () => {
     
 }
 
-stream.on("item", async comment => {
-    if (new Date((comment.created_utc*1000)) < runtimeDate ) {
-        return
-    }
+// stream.on("item", async comment => {
+//     if (new Date((comment.created_utc*1000)) < runtimeDate ) {
+//         return
+//     }
 
-    if (comment.author.name == process.env.REDDIT_USERNAME) {
-        return
-    }
+//     if (comment.author.name == process.env.REDDIT_USERNAME) {
+//         return
+//     }
 
-    await r.getComment(comment.parent_id).fetch().then(async parentComment => {
-        let getRedditCommand = getBotCommand(comment.body)
-        switch (getRedditCommand) {
-            case "!cannatest": 
-                let getTipAmountComment = getTipAmount(comment.body)
-                if (!getTipAmount) {
-                    return
-                }
-                try {
-                    let { balances } = await getUserBalance(comment.author.name)
-                    if (balances.CANNACOIN < getTipAmountComment) {
-                        logger("Error. Not enough funds")
-                        createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
-                        return
-                    }
-                } catch (error) {
-                    logger("Error. Not enough funds")
-                    createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
-                    return
-                }
+//     await r.getComment(comment.parent_id).fetch().then(async parentComment => {
+//         let getRedditCommand = getBotCommand(comment.body)
+//         switch (getRedditCommand) {
+//             case "!cannatest": 
+//                 let getTipAmountComment = getTipAmount(comment.body)
+//                 if (!getTipAmount) {
+//                     return
+//                 }
+//                 try {
+//                     let { balances } = await getUserBalance(comment.author.name)
+//                     if (balances.CANNACOIN < getTipAmountComment) {
+//                         logger("Error. Not enough funds")
+//                         createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
+//                         return
+//                     }
+//                 } catch (error) {
+//                     logger("Error. Not enough funds")
+//                     createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
+//                     return
+//                 }
 
-                if (comment.author.name == parentComment.author.name) {
-                    createComment(comment, 'You cannot send a tip to yourself')
-                    return
-                }
+//                 if (comment.author.name == parentComment.author.name) {
+//                     createComment(comment, 'You cannot send a tip to yourself')
+//                     return
+//                 }
                  
-                let balanceA = await getUserBalance(comment.author.name)
-                let balanceB = await getUserBalance(parentComment.author.name)
+//                 let balanceA = await getUserBalance(comment.author.name)
+//                 let balanceB = await getUserBalance(parentComment.author.name)
 
-                let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
+//                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
                 
-                /**
-                 * If you want to disable tips to the bot, uncomment
-                 * the tip function from the syntax below
-                 */
-                if (parentComment.author.name == process.env.REDDIT_USERNAME) {
-                    createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
-                    return
-                }
-                botLogger({
-                    type: "tip",
-                    from: comment.author.name,
-                    to: parentComment.author.name,
-                    amount: getTipAmountComment,
-                    ts: new Date()
-                })
-                if (!tipResponse.upsertedCount) {
-                    createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-                    createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
-                    return
-                }
-                createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-                createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
+//                 /**
+//                  * If you want to disable tips to the bot, uncomment
+//                  * the tip function from the syntax below
+//                  */
+//                 if (parentComment.author.name == process.env.REDDIT_USERNAME) {
+//                     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
+//                     return
+//                 }
+//                 botLogger({
+//                     type: "tip",
+//                     from: comment.author.name,
+//                     to: parentComment.author.name,
+//                     amount: getTipAmountComment,
+//                     ts: new Date()
+//                 })
+//                 if (!tipResponse.upsertedCount) {
+//                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
+//                     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+//                     return
+//                 }
+//                 createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
+//                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
-            break
-            default: 
-                logger(`Invalid command`)
-            break
-        }
-    });
-    return
-})
+//             break
+//             default: 
+//                 logger(`Invalid command`)
+//             break
+//         }
+//     });
+//     return
+// })
 
 const getComments = (id) => {
     return new Promise(async resolve => {
