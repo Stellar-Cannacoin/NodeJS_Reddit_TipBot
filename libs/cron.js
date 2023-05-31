@@ -43,7 +43,7 @@ const karmaPayout = async () => {
             totalamount: reward*records.length,
             payout: reward
         }).then(data => {
-            // reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
+            reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
             logger("Posted to Reddit")
             resolve(true)
         }).catch(error => {
