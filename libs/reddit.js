@@ -18,8 +18,8 @@ r.config({ continueAfterRatelimitError: true })
 
 const stream = new CommentStream(r, {
     subreddit: process.env.SUBREDDIT,
-    limit: 10,
-    pollTime: 10000
+    limit: 1,
+    pollTime: 50000
 })
 /**
  * Uncomment to use CommentStream
