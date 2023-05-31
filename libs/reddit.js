@@ -7,7 +7,7 @@ const { withdrawToWallet } = require('./withdraw')
 const { logger } = require('./util')
 
 const r = new Snoowrap({
-	userAgent: 'stellar-reddit-tipbot',
+	userAgent: 'stellarRedditTipbot',
 	clientId: process.env.APP_ID,
 	clientSecret: process.env.API_SECRET,
 	username: process.env.REDDIT_USERNAME,

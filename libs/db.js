@@ -43,6 +43,7 @@ const fetchRewardRecords = async () => {
         resolve(results)
     })
 }
+
 const fetchRewardStats = async () => {
     return new Promise(async resolve => {
         await client.connect();
@@ -111,6 +112,16 @@ const getUserBalance = (user) => {
     })
 }
 
+const botLogger = (document) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('logs')
+        const results = await collection.insertOne(document)
+        resolve(results)
+    })
+}
+
 module.exports = {
     storeDailyScore,
     storeMonthlyReward,
@@ -120,5 +131,6 @@ module.exports = {
     distributeReward,
     updateBalance,
     getUserBalance,
-    tipUser
+    tipUser,
+    botLogger
 }
