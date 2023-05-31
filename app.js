@@ -1,19 +1,13 @@
 require('dotenv').config()
 
-const axios = require('axios')
-const cron = require('node-cron');
+const cron = require('node-cron')
 
 const reddit = require('./libs/reddit')
-const { calculateRewardPerUser } = require('./libs/reward')
-const { storeDailyScore, fetchRewardRecords, distributeReward, fetchRewardStats } = require('./libs/db')
+const { fetchRewardRecords } = require('./libs/db')
 
-const fs = require('fs');
-const moment = require('moment');
-const { paymentListener } = require('./libs/stellar');
+const { paymentListener } = require('./libs/stellar')
 const { logger } = require('./libs/util');
-const { collectKarma, karmaPayout } = require('./libs/cron');
-const fileName = './data/runtime.json'
-const runtimeFile = require(fileName)
+const { collectKarma, karmaPayout } = require('./libs/cron')
 
 logger('Tipbot is starting')
 
@@ -27,7 +21,7 @@ logger('Daily CRON scheduled')
 
 
 /**
- * Monthly payout rutine
+ * Monthly payout routine
  */
 cron.schedule('0 0 1 * *', async () => {
     karmaPayout()
