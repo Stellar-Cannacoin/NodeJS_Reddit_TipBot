@@ -55,9 +55,9 @@ const karmaPayout = async () => {
 
 const collectKarma = async () => {
     return new Promise(async (resolve, reject) => {
-    logger(`Daily cronjob started ${process.env.FETCH_URL}`)
+    logger(`Daily cronjob started https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
         try {
-            axios.get(process.env.FETCH_URL)
+            axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
             .then (async ({ data }) => {
                 data.data.children.map(async (item, index) => {
                     let post_date = moment(item.data.created_utc*1000).format('DD.MM.Y')
