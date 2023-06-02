@@ -22,6 +22,29 @@ const depositToWallet = (user) => {
     return `Send payment to the address '${issuerPair.publicKey()}' with the memo '${user}'`
 }
 
+const feeBumpTransaction = (error, feeIssuer) => {
+    return new Promise((resolve, reject) => {
+        const lastTx = new stellar.TransactionBuilder.fromXDR(decodeURIComponent(error.config.data.split('tx=')[1]), stellar.Networks.PUBLIC);
+
+        server.submitTransaction(lastTx).catch(function (error) {
+            if (isFeeError(error)) {
+                let bump = new stellar.TransactionBuilder.buildFeeBumpTransaction(
+                    feeIssuer,
+                    "50000" * 10,
+                    lastTx,
+                    stellar.Networks.PUBLIC
+                );
+                bump.sign(feeIssuer);
+                return server.submitTransaction(bump);
+            }
+        }).then((data) => {
+            resolve(data)
+        }).catch(error => {
+            resolve(false)
+        });
+    })
+}
+
 const isFeeError = (error) => {
     return (
       error.response !== undefined &&
@@ -89,6 +112,7 @@ const paymentListener = () => {
 module.exports = { 
     startWalletListener,
     depositToWallet,
+    feeBumpTransaction,
     isValidAddress,
     isFeeError,
     paymentListener

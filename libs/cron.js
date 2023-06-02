@@ -10,6 +10,7 @@ const { storeDailyScore, fetchRewardRecords, distributeReward, fetchRewardStats,
 const fs = require('fs');
 const moment = require('moment');
 const { logger } = require('./util');
+const blacklist = require('./data/blacklist.json')
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
@@ -75,7 +76,7 @@ const collectKarma = async () => {
                         console.log(`Found ${item.data.num_comments} comments`)
                     }
 
-                    let blacklist = require('./data/blacklist.json')
+                    
 
                     if (blacklist[item.data.author]) {
                         return

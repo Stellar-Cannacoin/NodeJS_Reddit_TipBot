@@ -8,6 +8,7 @@ const { fetchRewardRecords } = require('./libs/db')
 const { paymentListener } = require('./libs/stellar')
 const { logger } = require('./libs/util');
 const { collectKarma, karmaPayout } = require('./libs/cron')
+const { transferFunds } = require('./libs/dist')
 
 logger('Tipbot is starting')
 
@@ -22,11 +23,24 @@ logger('Daily CRON scheduled')
 /**
  * Monthly payout routine
  */
-cron.schedule('0 0 1 * *', async () => {
+cron.schedule('0 1 1 * *', async () => {
     karmaPayout()
 })
 logger('Monthly CRON scheduled')
 
+/**
+ * Monthly fund transfer to cover monthly distribution
+ */
+cron.schedule('0 0 1 * *', async () => {
+    transferFunds()
+    .then(data => {
+        console.log("Successfully transferred funds")
+    })
+    .catch(error => {
+        console.log("error", error)
+    })
+})
+logger('Funds management service running')
 /**
  * Set user flairs every 4th hour
  */

@@ -13,6 +13,11 @@ const calculateRewardPerUser = (upvotes) => {
    return rewardArray[runtimeCount.count]/upvotes
 }
 
+const getTotalPayoutReward = () => {
+    return rewardArray[runtimeCount.count]
+}
+
 module.exports = {
-    calculateRewardPerUser
+    calculateRewardPerUser,
+    getTotalPayoutReward
 }
