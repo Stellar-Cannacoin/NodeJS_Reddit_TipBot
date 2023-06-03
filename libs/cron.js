@@ -98,7 +98,7 @@ const collectKarma = async () => {
                     setTimeout(async function () {
                         try {
                             let comments = await reddit.getComments(post.id);
-                            // console.log("array?", comments)
+
                             if (!Array.isArray(comments)) {
                                 return
                             }
