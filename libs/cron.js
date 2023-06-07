@@ -23,8 +23,11 @@ const karmaPayout = async () => {
         let reward = calculateRewardPerUser(karma)
 
         records.map(record => {
-            distributeReward(record.user, reward, "CANNACOIN")
+            // console.log(record.user, reward*record.score)
+            distributeReward(record.user, reward*record.score, "CANNACOIN")
         })
+
+        // return;
 
         runtimeFile.count++
         runtimeFile.lastrun = new Date()
