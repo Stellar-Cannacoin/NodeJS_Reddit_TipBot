@@ -17,7 +17,7 @@ Take a look at our [Wiki](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_Tip
 To install and set up the NodeJS Reddit TipBot locally, follow these steps:
 
 1. Clone the repository:
-````git clone https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot.git`````
+```git clone https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot.git```
 2. Install the dependencies: `cd NodeJS_Reddit_TipBot && npm install`
 
 3. Configure the application:
