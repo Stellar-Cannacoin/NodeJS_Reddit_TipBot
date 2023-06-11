@@ -52,14 +52,14 @@ const karmaPayout = async () => {
                 return error
             })
         }))
-        return
-        records.map(record => {
-            console.log(record._id, reward*record.score)
-            // withdrawToWallet(record._id, reward*record.score, "")
-            // distributeReward(record.user, reward*record.score, "CANNACOIN")
-        })
+        // return
+        // records.map(record => {
+        //     console.log(record._id, reward*record.score)
+        //     // withdrawToWallet(record._id, reward*record.score, "")
+        //     // distributeReward(record.user, reward*record.score, "CANNACOIN")
+        // })
 
-        return;
+        // return;
 
         runtimeFile.count++
         runtimeFile.lastrun = new Date()
@@ -117,7 +117,8 @@ const collectKarma = async () => {
 
                             let post = {
                                 id: comment.id,
-                                title: "comment",
+                                parent_id: comment.parent_id,
+                                title: comment.body,
                                 score: upvotes,
                                 user: comment.author.name,
                                 ups: comment.ups,
