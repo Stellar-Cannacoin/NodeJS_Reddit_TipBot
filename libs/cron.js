@@ -117,7 +117,7 @@ const collectKarma = async () => {
 
                             let post = {
                                 id: comment.id,
-                                parent_id: comment.parent_id,
+                                parent_id: item.data.id,
                                 title: comment.body,
                                 score: upvotes,
                                 user: comment.author.name,
