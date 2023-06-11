@@ -118,7 +118,7 @@ const createDistributionTransaction = (transactions, reward, account) => {
                 stellar.Operation.payment({
                     destination: account,
                     asset: new stellar.Asset('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ'),
-                    amount: parseFloat(reward*transaction.score+10000).toFixed(7),
+                    amount: parseFloat(reward*transaction.score).toFixed(7),
                     fee: "10000"
                 })
             )
