@@ -109,11 +109,67 @@ const paymentListener = () => {
     
 }
 
+const createDistributionTransaction = (transactions, reward, account) => {
+    return new Promise(async resolve => {
+        let StellarOperations = []
+        await transactions.map(transaction => {
+            console.log(reward*transaction.score)
+            StellarOperations.push(
+                stellar.Operation.payment({
+                    destination: account,
+                    asset: new stellar.Asset('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ'),
+                    amount: parseFloat(reward*transaction.score+10000).toFixed(7),
+                    fee: "10000"
+                })
+            )
+        })
+        resolve(StellarOperations)
+        
+    })
+    
+}
+
+const submitDistributionTransaction = (transactions) => {
+    return new Promise((resolve, reject) => {
+        // console.log(JSON.stringify(txArray))
+        var fee = (transactions.length*1000).toString();
+        server.loadAccount(issuerPair.publicKey()).then(account => {
+            console.log("[stellar]: Creating & signing transactions")
+            const txBuilder = new stellar.TransactionBuilder(account, {fee, networkPassphrase: Networks.PUBLIC});
+            txBuilder.operations = transactions;
+            txBuilder.addMemo(stellar.Memo.text(pool+' Pool Reward'));
+            txBuilder.setTimeout(TimeoutInfinite);
+            const tx = txBuilder.build();
+            tx.sign(issuerPair);
+            // resolve(server.submitTransaction(tx));
+            return(server.submitTransaction(tx))
+        })
+        .then(data => {
+            console.log("Paid out")
+            resolve(true)
+        })
+        .finally(data => {
+            console.log("[stellar]: Transaction done")
+            // console.log("[stellar]: "+JSON.stringify(data))
+        })
+        .catch(error => {
+            // console.log(JSON.stringify(error.extras.result_codes))
+            console.log(JSON.stringify(error))
+            // if (!error.config.data) {
+            //     console.log({status: "ERROR", message: "Invalid XDR", payload: []})
+            //     return;
+            // }
+        })
+    })
+}
+
 module.exports = { 
     startWalletListener,
     depositToWallet,
     feeBumpTransaction,
     isValidAddress,
     isFeeError,
-    paymentListener
+    paymentListener,
+    createDistributionTransaction,
+    submitDistributionTransaction
 };

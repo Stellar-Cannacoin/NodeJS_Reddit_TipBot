@@ -14,6 +14,16 @@ const storeDailyScore = (object) => {
     })
 }
 
+const recordPost = (object) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.updateOne({id: object.id}, {$set: object}, {upsert: true})
+        resolve(results)
+    })
+}
+
 const storeMonthlyReward = (array) => {
     return new Promise(async resolve => {
         await client.connect();
@@ -38,8 +48,22 @@ const fetchRewardRecords = async () => {
     return new Promise(async resolve => {
         await client.connect();
         const db = client.db(database)
-        const collection = db.collection('users')
-        const results = await collection.find().toArray()
+        // const collection = db.collection('users')
+        // const results = await collection.find().toArray()
+        const collection = db.collection('post_logs')
+        // const results = await collection.find().toArray()
+        const results = await collection.aggregate([
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+
+            // $group:
+            //         {
+            //             _id: "total_karma",
+            //             karma: { $sum: "$score" },
+            //         }
+        ]).toArray()
         resolve(results)
     })
 }
@@ -49,6 +73,25 @@ const fetchRewardStats = async () => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
+        const results = await collection.aggregate(
+            [
+                {
+                    $group:
+                    {
+                        _id: "total_karma",
+                        karma: { $sum: "$score" },
+                    }
+                }
+            ]
+        ).toArray()
+        resolve(results[0])
+    })
+}
+const fetchRewardPostStats = async () => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
         const results = await collection.aggregate(
             [
                 {
@@ -132,5 +175,7 @@ module.exports = {
     updateBalance,
     getUserBalance,
     tipUser,
-    botLogger
+    botLogger,
+    recordPost,
+    fetchRewardPostStats
 }

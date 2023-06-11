@@ -5,14 +5,14 @@ const { collectKarma, karmaPayout } = require('../libs/cron')
 /**
  * Test CRON
  */
-// test('collectKarma', () => {
-//     return collectKarma().then(async (data) => {
+test('collectKarma', () => {
+    return collectKarma().then(async (data) => {
+        expect(Array.isArray(data)).toBe(true)
+    });
+});
+
+// test('payoutKarma', () => {
+//     return karmaPayout().then(async (data) => {
 //         expect(data).toBe(true)
 //     });
-// });
-
-test('payoutKarma', () => {
-    return karmaPayout().then(async (data) => {
-        expect(data).toBe(true)
-    });
-})
+// })

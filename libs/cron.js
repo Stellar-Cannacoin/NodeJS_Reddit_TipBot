@@ -5,12 +5,12 @@ const cron = require('node-cron');
 
 const reddit = require('./reddit')
 const { calculateRewardPerUser } = require('./reward')
-const { storeDailyScore, fetchRewardRecords, distributeReward, fetchRewardStats, botLogger } = require('./db')
+const { fetchRewardRecords, distributeReward, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost } = require('./db')
 
 const fs = require('fs');
-const moment = require('moment');
 const { logger } = require('./util');
-const blacklist = require('./data/blacklist.json')
+const { withdrawToWallet } = require('./withdraw');
+const { createDistributionTransaction, submitDistributionTransaction } = require('./stellar');
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
@@ -18,16 +18,48 @@ const karmaPayout = async () => {
     return new Promise(async (resolve, reject) => {
         logger("Monthly cronjob started")
 
-        let { karma } = await fetchRewardStats()
+        let karma_users = await fetchRewardStats()
+        let { karma } = await fetchRewardPostStats()
         let records = await fetchRewardRecords()
-        let reward = calculateRewardPerUser(karma)
-
+        let reward = calculateRewardPerUser(karma+karma_users.karma)
+        // console.log({
+        //     karma_total: karma+karma_users.karma,
+        //     karma_posts: karma,
+        //     karma_users: karma_users.karma,
+        //     reward_per_karma: reward
+        // })
+        // console.log(records)
+        // return
+        let transactions = await createDistributionTransaction(records, reward, "GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7")
+        // console.log(StellarObject)
+        let blockTransactions = []
+        const chunkSize = 100;
+        for (let i = 0; i < transactions.length; i += chunkSize) {
+            const chunk = transactions.slice(i, i + chunkSize);
+            console.log("block length:",chunk.length)
+            blockTransactions.push(chunk)
+        }
+        // console.log(blockTransactions)
+        await Promise.all(blockTransactions.map(transaction => {
+            // console.log(transaction)
+            submitDistributionTransaction(transaction)
+            .then(data => {
+                console.log("Paid out")
+                return data
+            })
+            .catch(error => {
+                console.log("Failed to pay out")
+                return error
+            })
+        }))
+        return
         records.map(record => {
-            // console.log(record.user, reward*record.score)
-            distributeReward(record.user, reward*record.score, "CANNACOIN")
+            console.log(record._id, reward*record.score)
+            // withdrawToWallet(record._id, reward*record.score, "")
+            // distributeReward(record.user, reward*record.score, "CANNACOIN")
         })
 
-        // return;
+        return;
 
         runtimeFile.count++
         runtimeFile.lastrun = new Date()
@@ -59,86 +91,85 @@ const karmaPayout = async () => {
 const collectKarma = async () => {
     return new Promise(async (resolve, reject) => {
     logger(`Daily cronjob started https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
-        try {
-            axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
-            .then (async ({ data }) => {
-                data.data.children.map(async (item, index) => {
-                    let post_date = moment(item.data.created_utc*1000).format('DD.MM.Y')
-                    let current_date = moment(new Date()).format('DD.MM.Y')
+        axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
+        .then(({data}) => {
+            data.data.children.map(async (item, index) => {
+                let post = {
+                    id: item.data.id, 
+                    title: item.data.title,
+                    score: item.data.score,
+                    user: item.data.author,
+                    ups: item.data.ups,
+                    downs: item.data.downs,
+                    ts: new Date(item.data.created*1000)
+                }
+                recordPost(post)
 
-                    if (post_date != current_date) {
-                        logger("Outdated")
-                        return
-                    }
+                setTimeout(async function () {
+                    try {
+                        let comments = await reddit.getComments(post.id);
 
-                    if (item.data.banned_by != null || item.data.removed_by != null) {
-                        return
-                    }
-
-                    if (item.data.num_comments > 0) {
-                        console.log(`Found ${item.data.num_comments} comments`)
-                    }
-
-                    
-
-                    if (blacklist[item.data.author]) {
-                        return
-                    }
-
-                    let post = {
-                        id: item.data.id, 
-                        title: item.data.title,
-                        score: item.data.score,
-                        user: item.data.author,
-                        ups: item.data.ups,
-                        downs: item.data.downs
-                    }
-
-                    if (post.user == "[deleted]") {
-                        return
-                    }
-                    storeDailyScore(post)
-                    setTimeout(async function () {
-                        try {
-                            let comments = await reddit.getComments(post.id);
-
-                            if (!Array.isArray(comments)) {
-                                return
-                            }
-                            comments.map(comment => {
-                                let upvotes = comment.ups-comment.downs
-                                if (upvotes > 1) {
-                                    let commentmeta = {
-                                        score: upvotes,
-                                        user: comment.author.name
-                                    }
-                                    if (commentmeta.user == "[deleted]") {
-                                        return false
-                                    }
-                                    storeDailyScore(commentmeta)
-                                    return true
-                                }
-                            })
-                            return true
-                        } catch (error) {
-                            console.log(error)
+                        if (!Array.isArray(comments)) {
+                            return
                         }
-                    }, 2000*index);
-                })
-                resolve(true)
+                        comments.map(comment => {
+                            let upvotes = comment.ups-comment.downs
+
+                            let post = {
+                                id: comment.id,
+                                title: "comment",
+                                score: upvotes,
+                                user: comment.author.name,
+                                ups: comment.ups,
+                                downs: comment.downs,
+                                ts: new Date(comment.created*1000)
+                            }
+                            if (post.user == "[deleted]") {
+                                return false
+                            }
+                            recordPost(post)
+                            return true
+                        })
+                        return true
+                    } catch (error) {
+                        console.log(error)
+                    }
+                }, 2000*index);
             })
-            .catch(error => {
-                console.log(error)
-            })
-        } catch (error) {
-            logger(`Failed`)
+            resolve(data.data.children)
+            
+        })
+        .catch(error => {
             console.log(error)
-            resolve(false)
+            reject(error)
+        })
+    })
+}
+
+const showDataset = async () => {
+    return new Promise(async resolve => {
+        let { karma } = await fetchRewardStats()
+        let records = await fetchRewardRecords()
+        let reward = calculateRewardPerUser(karma)
+        // console.log("Karma & payout stats")
+        // console.log("Karma:", karma)
+        // console.log("Users:", records.length)
+        // console.log("Karma worth:", reward)
+        let payload = {
+            total_karma: karma,
+            total_users: records.length,
+            payout_per_karma: reward,
+            total_payout: karma*reward
         }
+        // await records.map(record => {
+        //     // distributeReward(record.user, reward*record.score, "CANNACOIN")
+        // })
+        resolve(payload)
     })
 }
 
 module.exports = {
     collectKarma,
-    karmaPayout
+    karmaPayout,
+    showDataset
 }
