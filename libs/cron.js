@@ -103,7 +103,10 @@ const collectKarma = async () => {
                     downs: item.data.downs,
                     ts: new Date(item.data.created*1000)
                 }
-                recordPost(post)
+                if (post.user != "AutoModerator" || post.user != "Canna_Tips") {
+                    recordPost(post)
+                }
+                
 
                 setTimeout(async function () {
                     try {
@@ -113,6 +116,7 @@ const collectKarma = async () => {
                             return
                         }
                         comments.map(comment => {
+                            
                             let upvotes = comment.ups-comment.downs
 
                             let post = {
@@ -124,6 +128,9 @@ const collectKarma = async () => {
                                 ups: comment.ups,
                                 downs: comment.downs,
                                 ts: new Date(comment.created*1000)
+                            }
+                            if (post.user == "AutoModerator" || post.user == "Canna_Tips") {
+                                return false
                             }
                             if (post.user == "[deleted]") {
                                 return false
@@ -149,22 +156,21 @@ const collectKarma = async () => {
 
 const showDataset = async () => {
     return new Promise(async resolve => {
-        let { karma } = await fetchRewardStats()
+        let { karma } = await fetchRewardPostStats()
+        let karma_users = await fetchRewardStats()
         let records = await fetchRewardRecords()
-        let reward = calculateRewardPerUser(karma)
-        // console.log("Karma & payout stats")
+        let reward = calculateRewardPerUser(karma+karma_users.karma)
+        // console.log("Karma & payout stats", karma_users.karma)
         // console.log("Karma:", karma)
         // console.log("Users:", records.length)
         // console.log("Karma worth:", reward)
         let payload = {
-            total_karma: karma,
+            total_karma: (karma+karma_users.karma),
             total_users: records.length,
             payout_per_karma: reward,
-            total_payout: karma*reward
+            total_payout: parseFloat((karma+karma_users.karma)*reward).toFixed(7)
         }
-        // await records.map(record => {
-        //     // distributeReward(record.user, reward*record.score, "CANNACOIN")
-        // })
+       
         resolve(payload)
     })
 }
