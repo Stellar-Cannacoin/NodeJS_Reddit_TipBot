@@ -37,7 +37,7 @@ const karmaPayout = async () => {
                     logger(`${user._id.toLowerCase()}: Paid out: ${reward*user.score}`)
                     resolve(true)
 
-                }, i * 5000)
+                }, i * 15000)
             })
         })
 
