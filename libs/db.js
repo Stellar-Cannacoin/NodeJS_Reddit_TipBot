@@ -48,26 +48,30 @@ const fetchRewardRecords = async () => {
     return new Promise(async resolve => {
         await client.connect();
         const db = client.db(database)
-        // const collection = db.collection('users')
-        // const results = await collection.find().toArray()
         const collection = db.collection('post_logs')
-        // const results = await collection.find().toArray()
         const results = await collection.aggregate([
             {$group: {
                 _id: "$user",
                 score: {$sum: "$score"}
             }}
-
-            // $group:
-            //         {
-            //             _id: "total_karma",
-            //             karma: { $sum: "$score" },
-            //         }
         ]).toArray()
         resolve(results)
     })
 }
-
+const fetchRewardRecordsUsers = async () => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.aggregate([
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+        ]).toArray()
+        resolve(results)
+    })
+}
 const fetchRewardStats = async () => {
     return new Promise(async resolve => {
         await client.connect();
@@ -170,6 +174,7 @@ module.exports = {
     storeMonthlyReward,
     resetScore,
     fetchRewardRecords,
+    fetchRewardRecordsUsers,
     fetchRewardStats,
     distributeReward,
     updateBalance,

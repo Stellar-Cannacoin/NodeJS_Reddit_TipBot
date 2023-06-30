@@ -1,16 +1,13 @@
 require('dotenv').config()
 
 const axios = require('axios')
-const cron = require('node-cron');
 
 const reddit = require('./reddit')
 const { calculateRewardPerUser } = require('./reward')
-const { fetchRewardRecords, distributeReward, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost } = require('./db')
+const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers } = require('./db')
 
 const fs = require('fs');
 const { logger } = require('./util');
-const { withdrawToWallet } = require('./withdraw');
-const { createDistributionTransaction, submitDistributionTransaction } = require('./stellar');
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
@@ -18,79 +15,81 @@ const karmaPayout = async () => {
     return new Promise(async (resolve, reject) => {
         logger("Monthly cronjob started")
 
-        let karma_users = await fetchRewardStats()
+        let karma_users = await fetchRewardStats() // Fallback: Will be removed
         let { karma } = await fetchRewardPostStats()
         let records = await fetchRewardRecords()
+        let records_users = await fetchRewardRecordsUsers() // Fallback: Will be removed
         let reward = calculateRewardPerUser(karma+karma_users.karma)
-        // console.log({
-        //     karma_total: karma+karma_users.karma,
-        //     karma_posts: karma,
-        //     karma_users: karma_users.karma,
-        //     reward_per_karma: reward
-        // })
-        // console.log(records)
-        // return
-        let transactions = await createDistributionTransaction(records, reward, "GDGK2GOKOIXLPU7DONRDWFSQ6R3SNQ7U2KYIBLXHU42HTBTPQUMKVVR7")
-        // console.log(StellarObject)
-        let blockTransactions = []
-        const chunkSize = 100;
-        for (let i = 0; i < transactions.length; i += chunkSize) {
-            const chunk = transactions.slice(i, i + chunkSize);
-            console.log("block length:",chunk.length)
-            blockTransactions.push(chunk)
-        }
-        // console.log(blockTransactions)
-        await Promise.all(blockTransactions.map(transaction => {
-            // console.log(transaction)
-            submitDistributionTransaction(transaction)
-            .then(data => {
-                console.log("Paid out")
-                return data
-            })
-            .catch(error => {
-                console.log("Failed to pay out")
-                return error
-            })
-        }))
-        // return
-        // records.map(record => {
-        //     console.log(record._id, reward*record.score)
-        //     // withdrawToWallet(record._id, reward*record.score, "")
-        //     // distributeReward(record.user, reward*record.score, "CANNACOIN")
-        // })
 
-        // return;
-
-        runtimeFile.count++
-        runtimeFile.lastrun = new Date()
-        console.log("karma",runtimeFile)
+        /**
+         * Will be removed from next 
+         * push on out
+         */
+        let conrecords = records.concat(records_users)
         
-        fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(error) {
-            if (error) { 
-                logger(`Error. ${error}`)
-                return reject(error)
-            }
+        /**
+         * Swap out 'conrecords' for 'records'
+         */
+        const payout = conrecords.map((user, i) => {
+            return new Promise(resolve => {
+                setTimeout(async () => {
+                    // await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send 1 u/${user._id}`)
+                    logger(`${user._id.toLowerCase()}: Paid out: ${reward*user.score}`)
+                    resolve(true)
+
+                }, i * 5000)
+            })
         })
-        logger("Ran monthly payout")
-        botLogger({
-            type: "reward",
-            karma: karma,
-            users: records.length,
-            totalamount: reward*records.length,
-            payout: reward
-        }).then(data => {
-            reddit.createSubmission(`Monthly CANNACOIN distribution 💚💨`, `Our monhtly CANNACOIN distribution have taken place. This month we've paid out ${reward} CANNACOIN for a total of ${karma} Reddit Karma\n`)
-            logger("Posted to Reddit")
-            resolve(true)
-        }).catch(error => {
-            reject(error)
-        })
+
+        /**
+         * Wait for payout Promise
+         * in order for the code to run correctly
+         */
+        Promise.all(payout).then((response) => {
+            runtimeFile.count++
+            runtimeFile.lastrun = new Date()
+            
+            fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(error) {
+                if (error) { 
+                    logger(`Error. ${error}`)
+                    return reject(error)
+                }
+            })
+            logger("Ran monthly payout")
+            botLogger({
+                type: "reward",
+                karma: karma,
+                users: records.length,
+                totalamount: reward*records.length,
+                payout: reward
+            }).then(data => {
+                /**
+                 * Create submission to subreddit
+                 */
+                reddit.createSubmission(
+                    `Monthly CANNACOIN distribution 💚 💨`,
+                    `- Total karma: __${(karma+karma_users.karma)}__\n\n`+
+                    `- Total payout: __${(karma+karma_users.karma)*reward}__\n\n`+
+                    `- Karma ^((CANNACOIN)^): __${reward}__ (1 karma = ${(karma+karma_users.karma)*reward} CANNACOIN)\n\n`+
+                    `- Tipped __${records.length}__ users this month\n\n`+
+                    `Our monthly CANNACOIN distribution have taken place, puff puff fam! `+
+                    `
+                    &nbsp;  
+                    `  +
+                    `Beep boop, look at me go 🤖`
+                )
+                logger("Posted to Reddit")
+                resolve(true)
+            }).catch(error => {
+                reject(error)
+            })
+        });
     })
 }
 
 const collectKarma = async () => {
     return new Promise(async (resolve, reject) => {
-    logger(`Daily cronjob started https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
+        logger(`Daily cronjob started https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
         axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
         .then(({data}) => {
             data.data.children.map(async (item, index) => {

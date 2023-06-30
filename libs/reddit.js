@@ -178,7 +178,7 @@ const getComments = (id) => {
 }
 
 const getTipAmount = (string) => {
-    let regex = /!cannatest ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    let regex = /!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
     if (!string.match(regex)) {
         return false
     }
@@ -200,7 +200,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!cannatest?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
+    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -208,7 +208,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!cannatest?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
+    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -334,11 +334,32 @@ const executeCommand = async (message) => {
 }
 
 const createMessage = (user, title, text) => {
+    try {
+
+    } catch (error) {
+
+    }
     return r.composeMessage({
         to: user,
         subject: title,
         text: text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)'
     })
+}
+
+const createDistMessage = async (user, title, text) => {
+    return new Promise(async resolve => {
+        try {
+            return resolve(await r.composeMessage({
+                to: user,
+                subject: title,
+                text: text
+            }))
+        } catch (error) {
+            console.log("error:", error)
+            return resolve(false)
+        }
+    })
+    
 }
 
 const createComment = (comment, text) => {
@@ -375,6 +396,7 @@ module.exports = {
     executeCommand,
     createSubmission,
     createMessage,
+    createDistMessage,
     createComment,
     getInbox,
     markMessageAsRead,

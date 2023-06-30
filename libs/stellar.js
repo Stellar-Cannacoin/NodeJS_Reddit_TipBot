@@ -118,9 +118,11 @@ const createDistributionTransaction = (transactions, reward, account) => {
                 stellar.Operation.payment({
                     destination: account,
                     asset: new stellar.Asset('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ'),
-                    amount: parseFloat(reward*transaction.score).toFixed(7),
-                    fee: "10000"
+                    amount: "1.0000000",//parseFloat(reward*transaction.score).toFixed(7),
+                    fee: "10000",
+                    memo: stellar.Memo.text(transaction._id)
                 })
+                // .addMemo(stellar.Memo.text(transaction._id))
             )
         })
         resolve(StellarOperations)
@@ -137,7 +139,7 @@ const submitDistributionTransaction = (transactions) => {
             console.log("[stellar]: Creating & signing transactions")
             const txBuilder = new stellar.TransactionBuilder(account, {fee, networkPassphrase: Networks.PUBLIC});
             txBuilder.operations = transactions;
-            txBuilder.addMemo(stellar.Memo.text(pool+' Pool Reward'));
+            // txBuilder.addMemo(stellar.Memo.text(pool+' Pool Reward'));
             txBuilder.setTimeout(TimeoutInfinite);
             const tx = txBuilder.build();
             tx.sign(issuerPair);
@@ -146,11 +148,12 @@ const submitDistributionTransaction = (transactions) => {
         })
         .then(data => {
             console.log("Paid out")
+            console.log(data)
             resolve(true)
         })
         .finally(data => {
             console.log("[stellar]: Transaction done")
-            // console.log("[stellar]: "+JSON.stringify(data))
+            console.log("[stellar]: "+JSON.stringify(data))
         })
         .catch(error => {
             // console.log(JSON.stringify(error.extras.result_codes))
@@ -163,6 +166,51 @@ const submitDistributionTransaction = (transactions) => {
     })
 }
 
+const createDistributionTransactionPayout = (transaction, reward) => {
+    return new Promise((resolve, reject) => {
+        console.log(JSON.stringify(transaction))
+        console.log(JSON.stringify(reward))
+        // let transactions = 
+        var fee = (1*1000).toString();
+        server.loadAccount(issuerPair.publicKey()).then(account => {
+            console.log("[stellar]: Creating & signing transactions")
+            const txBuilder = new stellar.TransactionBuilder(account, {fee, networkPassphrase: stellar.Networks.PUBLIC});
+            txBuilder.operations = [
+                stellar.Operation.payment({
+                    destination: "GCFUOOQN6VJNAD5OL36DGVL6WLTFCJZGOYKJMI7QUJQFRSTXULMYSICC",
+                    asset: new stellar.Asset('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ'),
+                    amount: "1.0000000",//parseFloat(reward*transaction.score).toFixed(7),
+                    fee: "10000",
+                    // memo: stellar.Memo.text(transaction._id)
+                })
+            ];
+            txBuilder.addMemo(stellar.Memo.text(transaction._id));
+            txBuilder.setTimeout(TimeoutInfinite);
+            const tx = txBuilder.build();
+            tx.sign(issuerPair);
+            // resolve(server.submitTransaction(tx));
+            return(server.submitTransaction(tx))
+        })
+        .then(data => {
+            console.log("[stellar]: Transaction done", data)
+            resolve(true)
+        })
+        // .finally(data => {
+        //     console.log("[stellar]: Transaction done")
+        //     // console.log("[stellar]: "+JSON.stringify(data))
+        // })
+        .catch(error => {
+            // console.log(JSON.stringify(error.extras.result_codes))
+            console.log("error", JSON.stringify(error))
+            // if (!error.config.data) {
+            //     console.log({status: "ERROR", message: "Invalid XDR", payload: []})
+            //     return;
+            // }
+            resolve(false)
+        })
+    })
+}
+
 module.exports = { 
     startWalletListener,
     depositToWallet,
@@ -171,5 +219,6 @@ module.exports = {
     isFeeError,
     paymentListener,
     createDistributionTransaction,
-    submitDistributionTransaction
+    submitDistributionTransaction,
+    createDistributionTransactionPayout
 };
