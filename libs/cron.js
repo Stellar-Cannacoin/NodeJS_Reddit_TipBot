@@ -33,8 +33,8 @@ const karmaPayout = async () => {
         const payout = conrecords.map((user, i) => {
             return new Promise(resolve => {
                 setTimeout(async () => {
-                    // await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send 1 u/${user._id}`)
-                    logger(`${user._id.toLowerCase()}: Paid out: ${reward*user.score}`)
+                    await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send ${Math.floor(reward*user.score)} u/${user._id.toLowerCase()}`)
+                    logger(`${user._id.toLowerCase()}: Paid out: ${Math.floor(reward*user.score)}`)
                     resolve(true)
 
                 }, i * 15000)
