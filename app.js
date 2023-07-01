@@ -24,7 +24,7 @@ logger('Daily CRON scheduled')
 /**
  * Monthly payout routine
  */
-cron.schedule('0 1 1 * *', async () => {
+cron.schedule('0 12 1 * *', async () => {
     karmaPayout()
 })
 logger('Monthly CRON scheduled')
