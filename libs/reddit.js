@@ -104,7 +104,7 @@ stream.on("item", async comment => {
     await r.getComment(comment.parent_id).fetch().then(async parentComment => {
         let getRedditCommand = getBotCommand(comment.body)
         switch (getRedditCommand) {
-            case "!canna2v": 
+            case '!canna2v': 
                 let getTipAmountComment = getTipAmount(comment.body)
                 if (!getTipAmount) {
                     return
@@ -157,7 +157,7 @@ stream.on("item", async comment => {
                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
             break
-            case "!canna": 
+            case '!canna': 
                 logger("Got mirror tip")
                 let getTipAmountCommentMirror = getTipAmount(comment.body)
                 if (!getTipAmount) {
