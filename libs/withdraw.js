@@ -14,6 +14,13 @@ const { isFeeError, isValidAddress } = require('./stellar')
 const server = new stellar.Server("https://horizon.stellar.org")
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY)
 
+/**
+ * 
+ * @param {*} memo String
+ * @param {*} amount String
+ * @param {*} wallet String (uppercase)
+ * @returns 
+ */
 const withdrawToWallet = (memo, amount, wallet) => {
     return new Promise((resolve, reject) => {
 

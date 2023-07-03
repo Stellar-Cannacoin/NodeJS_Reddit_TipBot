@@ -234,11 +234,10 @@ const fetchRewardPostStats = async () => {
 const updateBalance = (user, amount, token) => {
     return new Promise(async resolve => {
         let balanceCurrency = `balances.${token}`
-
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
+        const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }})
         resolve(resultsA)
     })
 }

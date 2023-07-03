@@ -250,10 +250,15 @@ const executeCommand = async (message) => {
         break
 
         case 'send':
-            let wallet = getWalletAddress(message.body)
+            
+            let wallet = getWalletAddress(message.body.toLowerCase())
             let amount = getAmountFromCommand(message.body)
+
+            console.log("body: ", message.body)
+            console.log("wallet: ", wallet)
+
             if (!wallet || wallet == null) {
-                replyToMessage(message.id, `Something went wrong, invalid command`)
+                replyToMessage(message.id, `Something went wrong, invalid user or wallet address. If you're sending to a user, use :'u/username'`)
                 markMessageAsRead(message.id)
                 return
             }
@@ -298,26 +303,27 @@ const executeCommand = async (message) => {
             }
 
             let balance = await getUserBalance(message.author.name)
-
-            if (balance.balances.CANNACOIN < amount) {
-                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${balance.balances.CANNACOIN} CANNACOIN`)
+            let tokenbalance = balance?.balances?.CANNACOIN || 0
+            if (tokenbalance < amount) {
+                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
                 markMessageAsRead(message.id)
                 return
             }
-
-            withdrawToWallet("Withdrawal", amount, wallet)
+            console.log("wallet uppercase", wallet.toUpperCase())
+            withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
             .then(async data => {
                 if (data) {
                     let amount_negative = -Math.abs(amount)
+
                     updateBalance(message.author.name, amount_negative, "CANNACOIN")
                     replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet}`)
                     markMessageAsRead(message.id)
 
-                    let balanceA = await getUserBalance(message.author.name)
+                    //let balanceA = await getUserBalance(message.author.name)
                     // setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
                     return
                 }
-                replyToMessage(message.id, `Something went wrong, please try again later`)
+                replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
                 markMessageAsRead(message.id)
             })
             .catch(error => {
@@ -341,7 +347,7 @@ const executeCommand = async (message) => {
         break
         
         case 'help':
-            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
         default:
