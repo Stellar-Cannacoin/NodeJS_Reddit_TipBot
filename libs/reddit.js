@@ -21,7 +21,7 @@ let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
     subreddit: subredditnames,//process.env.SUBREDDIT,
-    limit: 1,
+    limit: 2,
     pollTime: 20000
 })
 
