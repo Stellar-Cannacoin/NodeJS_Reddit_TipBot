@@ -53,7 +53,6 @@ const messageStream = async () => {
                         return
                     }
                     logger(`Received message`)
-                    console.log(JSON.stringify(message))
                     executeCommand(message)
                     return
                 } 
@@ -232,14 +231,11 @@ const executeCommand = async (message) => {
     }
 
     let botCommand = botCommandRaw.toLowerCase()
-    console.log(JSON.stringify(message.author.name), botCommand+" "+message.id)
     try {
 
     
     switch(botCommand) {
         case 'balance':
-            // console.log(JSON.stringify(message))
-            
             let { balances } = await getUserBalance(message.author.name)
 
             let { score } = await getUserKarma(message.author.name)
@@ -340,8 +336,6 @@ const executeCommand = async (message) => {
             await Promise.all(leaderboard.map((user, index) => {
                 messageRaw += `${index+1}. u/${user._id} __[${user.score}]__ Karma earned  \n\n  `
             }))
-            console.log(messageRaw)
-
             replyToMessage(message.id, messageRaw)
 
         break
