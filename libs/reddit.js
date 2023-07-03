@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance, botLogger } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger } = require('./util')
 
@@ -53,7 +53,7 @@ const messageStream = async () => {
                         return
                     }
                     logger(`Received message`)
-    
+                    console.log(JSON.stringify(message))
                     executeCommand(message)
                     return
                 } 
@@ -200,7 +200,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
+    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -208,7 +208,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|help|Help)/
+    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -216,6 +216,9 @@ const getBotCommandFull = (string) => {
 }
 
 const executeCommand = async (message) => {
+    if (message.author.name == "Canna_Tips") {
+        return false
+    }
     if (message.dest != process.env.REDDIT_USERNAME) {
         return false
     }
@@ -228,16 +231,25 @@ const executeCommand = async (message) => {
     }
 
     let botCommand = botCommandRaw.toLowerCase()
+    console.log(JSON.stringify(message.author.name), botCommand+" "+message.id)
+    try {
 
+    
     switch(botCommand) {
         case 'balance':
+            // console.log(JSON.stringify(message))
+            
             let { balances } = await getUserBalance(message.author.name)
+
+            let { score } = await getUserKarma(message.author.name)
             let redditBalance = balances?.CANNACOIN
             if (!balances || !balances.CANNACOIN) {
                 redditBalance = "0"
             }
-            replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(7)} CANNACOIN`)
-            markMessageAsRead(message.id)
+            setTimeout(() => {
+                replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
+                markMessageAsRead(message.id)
+            }, 5000)
         break
 
         case 'send':
@@ -317,8 +329,20 @@ const executeCommand = async (message) => {
         break
         
         case 'deposit':
-            replyToMessage(message.id, `Send the desired amount to the address `+'`'+`${process.env.WALLET_PUBLIC}`+'`'+` using the memo `+'`'+`${message.author.name}`+'`')
+            replyToMessage(message.id, `Send the desired amount to the address `+'`'+`${process.env.WALLET_PUBLIC}`+'`'+` using the memo `+'`'+`${message.author.name.toLowerCase()}`+'`')
             markMessageAsRead(message.id)
+        break
+
+        case 'leaderboard':
+            let leaderboard = await fetchLeaderboard()
+            let messageRaw = `## This month's current leaderboard\n  `;
+            await Promise.all(leaderboard.map((user, index) => {
+                messageRaw += `${index+1}. u/${user._id} __[${user.score}]__ Karma earned  \n\n  `
+            }))
+            console.log(messageRaw)
+
+            replyToMessage(message.id, messageRaw)
+
         break
         
         case 'help':
@@ -331,6 +355,12 @@ const executeCommand = async (message) => {
         break
     }
     return true
+    } catch (error) {
+        
+        console.log("Case err: ", error)
+        return false
+    }
+    
 }
 
 const createMessage = (user, title, text) => {

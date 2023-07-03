@@ -1,5 +1,6 @@
 require('dotenv').config()
 
+const moment = require('moment');
 const { MongoClient } = require('mongodb');
 const client = new MongoClient(process.env.MONGO_URL);
 const database = process.env.MONGO_DB;
@@ -44,7 +45,7 @@ const resetScore = () => {
     })
 }
 
-const fetchRewardRecords = async () => {
+const fetchRewardRecordsBack = async () => {
     return new Promise(async resolve => {
         await client.connect();
         const db = client.db(database)
@@ -54,8 +55,122 @@ const fetchRewardRecords = async () => {
                 _id: "$user",
                 score: {$sum: "$score"}
             }}
+            // Needs to add a filter on date, so it will only capture the previuous month's logs
+            // Or we can simply just remove the data in the database EOM
         ]).toArray()
         resolve(results)
+    })
+}
+const fetchRewardRecords = async (start, end) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        console.log(moment().subtract(1,'months').endOf('month').format('YYYY-MM-DD hh:mm'), new Date(moment().subtract(1,'months').startOf('month').format('YYYY-MM-DD hh:mm')))
+
+        const results = await collection.aggregate([
+            { $match: { 
+                ts: {
+                    $gte: new Date(moment().subtract(1,'months').startOf('month').format('YYYY-MM-DD hh:mm')),
+                    $lte: new Date(moment().subtract(1,'months').endOf('month').format('YYYY-MM-DD hh:mm'))
+                    }
+                }
+            },
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+            // Needs to add a filter on date, so it will only capture the previuous month's logs
+            // Or we can simply just remove the data in the database EOM
+        ]).toArray()
+        resolve(results)
+    })
+}
+const fetchRewardRecordsCurrent = async (start, end) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.aggregate([
+            { $match: { 
+                ts: {
+                    $gte: new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm')),
+                    $lte: new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm'))
+                    }
+                }
+            },
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+            // Needs to add a filter on date, so it will only capture the previuous month's logs
+            // Or we can simply just remove the data in the database EOM
+        ]).toArray()
+        resolve(results)
+    })
+}
+const fetchLeaderboardAlltime = async (start, end) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.aggregate([
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+            // Needs to add a filter on date, so it will only capture the previuous month's logs
+            // Or we can simply just remove the data in the database EOM
+        ]).sort({score: 1}).limit(5).toArray()
+        resolve(results)
+    })
+}
+const fetchLeaderboard = async () => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.aggregate([
+            { $match: { 
+                ts: {
+                    $gte: new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm')),
+                    $lte: new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm'))
+                    }
+                }
+            },
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+            // Needs to add a filter on date, so it will only capture the previuous month's logs
+            // Or we can simply just remove the data in the database EOM
+        ]).sort({score: -1}).limit(5).toArray()
+        resolve(results)
+    })
+}
+const getUserKarma = async (user) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.aggregate([
+            { $match: { 
+                $and: [ 
+                    {ts: { $gte: new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm')), $lte: new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm')) } },
+                    {user: user}
+                ]
+            }},
+            {$group: {
+                _id: "$user",
+                score: {$sum: "$score"}
+            }}
+        ]).limit(1).toArray()
+        if (results.length > 0) {
+            return resolve(results[0])
+        }
+
+        return resolve({_id: user, score: 0})
+        
     })
 }
 const fetchRewardRecordsUsers = async () => {
@@ -155,6 +270,9 @@ const getUserBalance = (user) => {
         const db = client.db(database)
         const collection = db.collection('users')
         const results = await collection.findOne({user: user})
+        if (!results) {
+            return resolve({balances: {"CANNACOIN": 0}})
+        }
         resolve(results)
     })
 }
@@ -179,8 +297,13 @@ module.exports = {
     distributeReward,
     updateBalance,
     getUserBalance,
+    getUserKarma,
     tipUser,
     botLogger,
     recordPost,
-    fetchRewardPostStats
+    fetchRewardPostStats,
+    fetchRewardRecordsBack,
+    fetchRewardRecordsCurrent,
+    fetchLeaderboard,
+    fetchLeaderboardAlltime
 }

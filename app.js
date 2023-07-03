@@ -16,8 +16,8 @@ logger('Tipbot is starting')
  * Collect user's karma every 24 hours
  */
 // cron.schedule('59 23 * * *', async () => {
-cron.schedule('15 * * * *', async () => {
-    collectKarma()
+cron.schedule('30 * * * *', async () => {
+    // collectKarma()
 })
 logger('Daily CRON scheduled')
 
@@ -62,8 +62,8 @@ logger('Balance listener running')
 /**
  * Message Stream job
  */
-cron.schedule('* * * * *', async () => {
-    // reddit.messageStream()
+cron.schedule('*/2 * * * *', async () => {
+    reddit.messageStream()
 })
 
 /**

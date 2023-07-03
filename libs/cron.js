@@ -4,7 +4,7 @@ const axios = require('axios')
 
 const reddit = require('./reddit')
 const { calculateRewardPerUser } = require('./reward')
-const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers } = require('./db')
+const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers, fetchRewardRecordsCurrent } = require('./db')
 
 const fs = require('fs');
 const { logger } = require('./util');
@@ -70,7 +70,7 @@ const karmaPayout = async () => {
                     `Monthly CANNACOIN distribution 💚 💨`,
                     `- Total karma: __${(karma+karma_users.karma)}__\n\n`+
                     `- Total payout: __${(karma+karma_users.karma)*reward}__\n\n`+
-                    `- Karma ^((CANNACOIN)^): __${reward}__ (1 karma = ${(karma+karma_users.karma)*reward} CANNACOIN)\n\n`+
+                    `- Karma ^((CANNACOIN)^): __${reward}__ \n\n`+
                     `- Tipped __${records.length}__ users this month\n\n`+
                     `Our monthly CANNACOIN distribution have taken place, puff puff fam! `+
                     `
@@ -157,7 +157,7 @@ const showDataset = async () => {
     return new Promise(async resolve => {
         let { karma } = await fetchRewardPostStats()
         let karma_users = await fetchRewardStats()
-        let records = await fetchRewardRecords()
+        let records = await fetchRewardRecordsCurrent()
         let reward = calculateRewardPerUser(karma+karma_users.karma)
         // console.log("Karma & payout stats", karma_users.karma)
         // console.log("Karma:", karma)
