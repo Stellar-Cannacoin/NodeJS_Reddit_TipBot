@@ -92,7 +92,7 @@ const paymentListener = () => {
                         if (to != issuerPair.publicKey() || source_account == issuerPair.publicKey() || asset != "CANNACOIN:GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ" ) {
                             return
                         }
-                        updateBalance(memo, parseFloat(amount), "CANNACOIN")
+                        updateBalance(memo.toLowerCase(), parseFloat(amount), "CANNACOIN")
                         createMessage(memo, "Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
                     })
                     
