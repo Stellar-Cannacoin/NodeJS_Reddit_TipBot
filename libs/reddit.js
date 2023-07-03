@@ -337,7 +337,7 @@ const executeCommand = async (message) => {
                 messageRaw += `${index+1}. u/${user._id} __[${user.score}]__ Karma earned  \n\n  `
             }))
             replyToMessage(message.id, messageRaw)
-
+            markMessageAsRead(message.id)
         break
         
         case 'help':
