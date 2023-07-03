@@ -70,6 +70,6 @@ cron.schedule('*/2 * * * *', async () => {
  * Stellar payment listener
  */
 logger('Payment listener running')
-// paymentListener()
+paymentListener()
 
 logger('TipBot is running')

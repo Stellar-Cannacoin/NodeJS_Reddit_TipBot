@@ -242,6 +242,19 @@ const updateBalance = (user, amount, token) => {
     })
 }
 
+const updateBalanceTest = (user, amount, token) => {
+    return new Promise(async resolve => {
+        console.log("user:", user)
+        // return
+        // let balanceCurrency = `balances.${token}`
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const resultsA = await collection.insertOne(user)
+        resolve(resultsA)
+    })
+}
+
 const tipUser = (from, to, amount, token) => {
     return new Promise(async resolve => {
         let amount_negative = -Math.abs(amount)
@@ -300,6 +313,7 @@ module.exports = {
     fetchRewardStats,
     distributeReward,
     updateBalance,
+    updateBalanceTest,
     getUserBalance,
     getUserKarma,
     tipUser,

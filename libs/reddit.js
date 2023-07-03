@@ -16,11 +16,11 @@ const r = new Snoowrap({
 
 r.config({ continueAfterRatelimitError: true })
 
-// const stream = new CommentStream(r, {
-//     subreddit: process.env.SUBREDDIT,
-//     limit: 1,
-//     pollTime: 20000
-// })
+const stream = new CommentStream(r, {
+    subreddit: process.env.SUBREDDIT,
+    limit: 1,
+    pollTime: 20000
+})
 
 /**
  * Uncomment to use CommentStream
@@ -92,77 +92,78 @@ const commentStream = async () => {
     
 }
 
-// stream.on("item", async comment => {
-//     if (new Date((comment.created_utc*1000)) < runtimeDate ) {
-//         return
-//     }
+stream.on("item", async comment => {
+    if (new Date((comment.created_utc*1000)) < runtimeDate ) {
+        return
+    }
 
-//     if (comment.author.name == process.env.REDDIT_USERNAME) {
-//         return
-//     }
+    if (comment.author.name == process.env.REDDIT_USERNAME) {
+        return
+    }
 
-//     await r.getComment(comment.parent_id).fetch().then(async parentComment => {
-//         let getRedditCommand = getBotCommand(comment.body)
-//         switch (getRedditCommand) {
-//             case "!cannatest": 
-//                 let getTipAmountComment = getTipAmount(comment.body)
-//                 if (!getTipAmount) {
-//                     return
-//                 }
-//                 try {
-//                     let { balances } = await getUserBalance(comment.author.name)
-//                     if (balances.CANNACOIN < getTipAmountComment) {
-//                         logger("Error. Not enough funds")
-//                         createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
-//                         return
-//                     }
-//                 } catch (error) {
-//                     logger("Error. Not enough funds")
-//                     createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
-//                     return
-//                 }
+    await r.getComment(comment.parent_id).fetch().then(async parentComment => {
+        let getRedditCommand = getBotCommand(comment.body)
+        switch (getRedditCommand) {
+            case "!canna2v": 
+                let getTipAmountComment = getTipAmount(comment.body)
+                if (!getTipAmount) {
+                    return
+                }
+                try {
+                    let { balances } = await getUserBalance(comment.author.name)
+                    let tokenbalance = balances?.CANNACOIN || 0
+                    if (tokenbalance < getTipAmountComment) {
+                        logger("Error. Not enough funds")
+                        createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
+                        return
+                    }
+                } catch (error) {
+                    logger("Error. Not enough funds")
+                    createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
+                    return
+                }
 
-//                 if (comment.author.name == parentComment.author.name) {
-//                     createComment(comment, 'You cannot send a tip to yourself')
-//                     return
-//                 }
+                if (comment.author.name == parentComment.author.name) {
+                    createComment(comment, 'You cannot send a tip to yourself')
+                    return
+                }
                  
-//                 let balanceA = await getUserBalance(comment.author.name)
-//                 let balanceB = await getUserBalance(parentComment.author.name)
+                let balanceA = await getUserBalance(comment.author.name)
+                let balanceB = await getUserBalance(parentComment.author.name)
 
-//                 let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
+                let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
                 
-//                 /**
-//                  * If you want to disable tips to the bot, uncomment
-//                  * the tip function from the syntax below
-//                  */
-//                 if (parentComment.author.name == process.env.REDDIT_USERNAME) {
-//                     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
-//                     return
-//                 }
-//                 botLogger({
-//                     type: "tip",
-//                     from: comment.author.name,
-//                     to: parentComment.author.name,
-//                     amount: getTipAmountComment,
-//                     ts: new Date()
-//                 })
-//                 if (!tipResponse.upsertedCount) {
-//                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-//                     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
-//                     return
-//                 }
-//                 createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-//                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
+                /**
+                 * If you want to disable tips to the bot, uncomment
+                 * the tip function from the syntax below
+                 */
+                if (parentComment.author.name == process.env.REDDIT_USERNAME) {
+                    createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
+                    return
+                }
+                botLogger({
+                    type: "tip",
+                    from: comment.author.name,
+                    to: parentComment.author.name,
+                    amount: getTipAmountComment,
+                    ts: new Date()
+                })
+                if (!tipResponse.upsertedCount) {
+                    createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
+                    createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                    return
+                }
+                createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
+                createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
-//             break
-//             default: 
-//                 logger(`Invalid command`)
-//             break
-//         }
-//     });
-//     return
-// })
+            break
+            default: 
+                logger(`Invalid command`)
+            break
+        }
+    });
+    return
+})
 
 const getComments = (id) => {
     return new Promise(async resolve => {
@@ -177,7 +178,7 @@ const getComments = (id) => {
 }
 
 const getTipAmount = (string) => {
-    let regex = /!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    let regex = /!canna2v ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
     if (!string.match(regex)) {
         return false
     }
@@ -199,7 +200,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!canna2v?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -207,7 +208,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!canna2v?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -225,7 +226,7 @@ const executeCommand = async (message) => {
     let botCommandRaw = getBotCommand(message.body)
 
     if (!botCommandRaw) {
-        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
         markMessageAsRead(message.id)
         return false
     }
@@ -347,11 +348,11 @@ const executeCommand = async (message) => {
         break
         
         case 'help':
-            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
         default:
-            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
     }
