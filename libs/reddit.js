@@ -217,6 +217,7 @@ const getBotCommandFull = (string) => {
 
 const executeCommand = async (message) => {
     if (message.author.name == "Canna_Tips") {
+        markMessageAsRead(message.id)
         return false
     }
     if (message.dest != process.env.REDDIT_USERNAME) {
