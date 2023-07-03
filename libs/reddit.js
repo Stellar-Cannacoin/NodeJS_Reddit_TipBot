@@ -157,6 +157,59 @@ stream.on("item", async comment => {
                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
 
             break
+            case "!canna": 
+                logger("Got mirror tip")
+                let getTipAmountCommentMirror = getTipAmount(comment.body)
+                if (!getTipAmount) {
+                    return
+                }
+                try {
+                    let { balances } = await getUserBalance(comment.author.name)
+                    let tokenbalance = balances?.CANNACOIN || 0
+                    if (tokenbalance < getTipAmountCommentMirror) {
+                        logger("Error. Not enough funds")
+                        createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
+                        return
+                    }
+                } catch (error) {
+                    logger("Error. Not enough funds")
+                    createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
+                    return
+                }
+
+                if (comment.author.name == parentComment.author.name) {
+                    return
+                }
+                 
+                // let balanceA = await getUserBalance(comment.author.name)
+                // let balanceB = await getUserBalance(parentComment.author.name)
+
+                await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountCommentMirror), "CANNACOIN")
+                
+                /**
+                 * If you want to disable tips to the bot, uncomment
+                 * the tip function from the syntax below
+                 */
+                // if (parentComment.author.name == process.env.REDDIT_USERNAME) {
+                //     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
+                //     return
+                // }
+                botLogger({
+                    type: "tip",
+                    from: comment.author.name,
+                    to: parentComment.author.name,
+                    amount: getTipAmountCommentMirror,
+                    ts: new Date()
+                })
+                // if (!tipResponse.upsertedCount) {
+                //     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
+                //     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                //     return
+                // }
+                // createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
+                // createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
+
+            break
             default: 
                 logger(`Invalid command`)
             break
@@ -178,7 +231,7 @@ const getComments = (id) => {
 }
 
 const getTipAmount = (string) => {
-    let regex = /!canna2v ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    let regex = /!canna2v|!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
     if (!string.match(regex)) {
         return false
     }
@@ -200,7 +253,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -208,7 +261,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna2v?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
