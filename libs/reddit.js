@@ -302,6 +302,8 @@ const executeCommand = async (message) => {
                 markMessageAsRead(message.id)
                 return
             }
+            return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+            
 
             let balance = await getUserBalance(message.author.name)
             let tokenbalance = balance?.balances?.CANNACOIN || 0
