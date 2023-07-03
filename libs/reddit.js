@@ -184,7 +184,7 @@ stream.on("item", async comment => {
                     return
                 }
 
-                await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountCommentMirror), "CANNACOIN")
+                let tipResponseMirror = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountCommentMirror), "CANNACOIN")
                 
                 botLogger({
                     type: "tip",
@@ -193,12 +193,11 @@ stream.on("item", async comment => {
                     amount: getTipAmountCommentMirror,
                     ts: new Date()
                 })
-                if (tipResponse.upsertedCount) {
+                if (tipResponseMirror.upsertedCount) {
                     updateOptIn(parentComment.author.name, 1)
                 }
             break
             default: 
-                logger(`Invalid command`)
             break
         }
     });
