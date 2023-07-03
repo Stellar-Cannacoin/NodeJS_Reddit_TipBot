@@ -97,7 +97,7 @@ const collectKarma = async () => {
                     id: item.data.id, 
                     title: item.data.title,
                     score: item.data.score,
-                    user: item.data.author,
+                    user: item.data.author.toLowerCase(),
                     ups: item.data.ups,
                     downs: item.data.downs,
                     ts: new Date(item.data.created*1000)

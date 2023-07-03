@@ -150,6 +150,7 @@ const fetchLeaderboard = async () => {
 }
 const getUserKarma = async (user) => {
     return new Promise(async resolve => {
+
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('post_logs')
@@ -157,7 +158,11 @@ const getUserKarma = async (user) => {
             { $match: { 
                 $and: [ 
                     {ts: { $gte: new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm')), $lte: new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm')) } },
-                    {user: user}
+                    {$or: [
+                        {user: user},
+                        {user: user.toLowerCase()}
+                    ]}
+                    
                 ]
             }},
             {$group: {
@@ -233,7 +238,7 @@ const updateBalance = (user, amount, token) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const resultsA = await collection.updateOne({user: user}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
+        const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
         resolve(resultsA)
     })
 }
@@ -259,7 +264,7 @@ const distributeReward = (user, amount, token) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const results = await collection.updateOne({user: user}, {$inc: { [balanceCurrency]: amount }})
+        const results = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }})
         resolve(results)
     })
 }
@@ -269,7 +274,7 @@ const getUserBalance = (user) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const results = await collection.findOne({user: user})
+        const results = await collection.findOne({user: user.toLowerCase()})
         if (!results) {
             return resolve({balances: {"CANNACOIN": 0}})
         }
