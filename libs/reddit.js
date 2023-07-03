@@ -16,8 +16,11 @@ const r = new Snoowrap({
 
 r.config({ continueAfterRatelimitError: true })
 
+let subreddits = require('../data/subreddits.json')
+let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
+
 const stream = new CommentStream(r, {
-    subreddit: process.env.SUBREDDIT,
+    subreddit: subredditnames,//process.env.SUBREDDIT,
     limit: 1,
     pollTime: 20000
 })
