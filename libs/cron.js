@@ -102,7 +102,7 @@ const collectKarma = async () => {
                     downs: item.data.downs,
                     ts: new Date(item.data.created*1000)
                 }
-                if (post.user != "AutoModerator" || post.user != "Canna_Tips" || post.user != "Burnsivxx") {
+                if (!post.user.includes("AutoModerator") || !post.user.includes("Canna_Tips") || !post.user.includes("Burnsivxx")) {
                     recordPost(post)
                 }
                 
@@ -128,7 +128,7 @@ const collectKarma = async () => {
                                 downs: comment.downs,
                                 ts: new Date(comment.created*1000)
                             }
-                            if (post.user == "AutoModerator" || post.user == "Canna_Tips" || post.user != "Burnsivxx") {
+                            if (!post.user.includes("AutoModerator") || !post.user.includes("Canna_Tips") || !post.user.includes("Burnsivxx")) {
                                 return false
                             }
                             if (post.user == "[deleted]") {
