@@ -107,7 +107,7 @@ stream.on("item", async comment => {
     await r.getComment(comment.parent_id).fetch().then(async parentComment => {
         let getRedditCommand = getBotCommand(comment.body)
         switch (getRedditCommand) {
-            case '!canna2v': 
+            case '!canna2v2': 
                 let getTipAmountComment = getTipAmount(comment.body)
                 if (!getTipAmount) {
                     return
