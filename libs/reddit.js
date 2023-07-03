@@ -46,7 +46,7 @@ let runtimeDate = new Date();
 const messageStream = async () => {
     try {
         let inbox = await getInbox()
-        inbox.map(async (message, index) => {
+        await new Promise.all(inbox.map(async (message, index) => {
             setTimeout(function () {
                 if (message.new) {
                     if (message.dest != process.env.REDDIT_USERNAME) {
@@ -69,7 +69,7 @@ const messageStream = async () => {
                     })
                 }
             }, 1000*index);
-        })
+        }))
         return true
     } catch (error) {
         return false
