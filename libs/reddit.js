@@ -393,9 +393,12 @@ const executeCommand = async (message) => {
         
         case 'optin':
             updateOptIn(message.author.name, 1)
+            replyToMessage(message.id,  `You have __opted in__ to tipbot notifications`)
         break
         case 'optout':
             updateOptIn(message.author.name, 0)
+            replyToMessage(message.id,  `You have __opted out__ to tipbot notifications`)
+
         break
         default:
             replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
