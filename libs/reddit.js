@@ -104,7 +104,7 @@ stream.on("item", async comment => {
     await r.getComment(comment.parent_id).fetch().then(async parentComment => {
         let getRedditCommand = getBotCommand(comment.body)
         switch (getRedditCommand) {
-            case "!canna2v": 
+            case "!cann2a": 
                 let getTipAmountComment = getTipAmount(comment.body)
                 if (!getTipAmount) {
                     return
@@ -178,7 +178,7 @@ const getComments = (id) => {
 }
 
 const getTipAmount = (string) => {
-    let regex = /!canna2v ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    let regex = /!cann2a ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
     if (!string.match(regex)) {
         return false
     }
@@ -200,7 +200,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!cann2a?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -208,7 +208,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna2v?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!cann2a?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
     if (!string.match(regex)) {
         return false
     }
@@ -226,7 +226,7 @@ const executeCommand = async (message) => {
     let botCommandRaw = getBotCommand(message.body)
 
     if (!botCommandRaw) {
-        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !cann2a {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
         markMessageAsRead(message.id)
         return false
     }
@@ -348,11 +348,11 @@ const executeCommand = async (message) => {
         break
         
         case 'help':
-            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !cann2a {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
         default:
-            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !cann2a {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
     }
