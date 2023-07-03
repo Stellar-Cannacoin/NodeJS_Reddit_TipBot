@@ -251,8 +251,8 @@ const tipUser = (from, to, amount, token) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const resultsA = await collection.updateOne({user: from}, {$inc: { [balanceCurrency]: amount_negative }})
-        const resultsB = await collection.updateOne({user: to}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
+        const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$inc: { [balanceCurrency]: amount_negative }})
+        const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
         resolve(resultsB)
     })
 }
