@@ -254,6 +254,18 @@ const updateBalanceTest = (user, amount, token) => {
         resolve(resultsA)
     })
 }
+const updateUserTest = (user) => {
+    return new Promise(async resolve => {
+        console.log("user:", user)
+        // return
+        // let balanceCurrency = `balances.${token}`
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const resultsA = await collection.updateOne({user: user.user}, {$set: {optin: user.optin}})
+        resolve(resultsA)
+    })
+}
 
 const tipUser = (from, to, amount, token) => {
     return new Promise(async resolve => {
@@ -266,6 +278,16 @@ const tipUser = (from, to, amount, token) => {
         const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$inc: { [balanceCurrency]: amount_negative }})
         const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
         resolve(resultsB)
+    })
+}
+
+const updateOptIn = (user, state) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.updateOne({user: user.toLowerCase()}, {$set: { optin: state }})
+        resolve(results)
     })
 }
 
@@ -314,6 +336,7 @@ module.exports = {
     distributeReward,
     updateBalance,
     updateBalanceTest,
+    updateUserTest,
     getUserBalance,
     getUserKarma,
     tipUser,
@@ -323,5 +346,6 @@ module.exports = {
     fetchRewardRecordsBack,
     fetchRewardRecordsCurrent,
     fetchLeaderboard,
-    fetchLeaderboardAlltime
+    fetchLeaderboardAlltime,
+    updateOptIn
 }

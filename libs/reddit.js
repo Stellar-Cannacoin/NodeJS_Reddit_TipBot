@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger } = require('./util')
 
@@ -155,7 +155,7 @@ stream.on("item", async comment => {
                 }
                 createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
                 createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
-
+                updateOptIn(parentComment.author.name, 1)
             break
             case '!canna': 
                 logger("Got mirror tip")
@@ -180,20 +180,9 @@ stream.on("item", async comment => {
                 if (comment.author.name == parentComment.author.name) {
                     return
                 }
-                 
-                // let balanceA = await getUserBalance(comment.author.name)
-                // let balanceB = await getUserBalance(parentComment.author.name)
 
                 await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountCommentMirror), "CANNACOIN")
                 
-                /**
-                 * If you want to disable tips to the bot, uncomment
-                 * the tip function from the syntax below
-                 */
-                // if (parentComment.author.name == process.env.REDDIT_USERNAME) {
-                //     createComment(comment, `Oh no... You shouldn't have! Thank you for the tip!  \n  \n Biip boop`)
-                //     return
-                // }
                 botLogger({
                     type: "tip",
                     from: comment.author.name,
@@ -201,14 +190,9 @@ stream.on("item", async comment => {
                     amount: getTipAmountCommentMirror,
                     ts: new Date()
                 })
-                // if (!tipResponse.upsertedCount) {
-                //     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-                //     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
-                //     return
-                // }
-                // createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-                // createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
-
+                if (tipResponse.upsertedCount) {
+                    updateOptIn(parentComment.author.name, 1)
+                }
             break
             default: 
                 logger(`Invalid command`)
@@ -253,7 +237,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout)/
     if (!string.match(regex)) {
         return false
     }
@@ -261,7 +245,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout)/
     if (!string.match(regex)) {
         return false
     }
@@ -405,6 +389,13 @@ const executeCommand = async (message) => {
         case 'help':
             replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
+        break
+        
+        case 'optin':
+            updateOptIn(message.author.name, 1)
+        break
+        case 'optout':
+            updateOptIn(message.author.name, 0)
         break
         default:
             replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
