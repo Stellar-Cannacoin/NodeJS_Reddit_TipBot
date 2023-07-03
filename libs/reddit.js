@@ -159,6 +159,7 @@ stream.on("item", async comment => {
             break
             default: 
                 logger(`Invalid command`)
+                logger(`Got command: ${comment.body}`)
             break
         }
     });
