@@ -93,6 +93,7 @@ const collectKarma = async () => {
         axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
         .then(({data}) => {
             data.data.children.map(async (item, index) => {
+                console.log(JSON.stringify(item))
                 let post = {
                     id: item.data.id, 
                     title: item.data.title,
