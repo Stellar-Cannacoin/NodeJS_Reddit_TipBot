@@ -16,12 +16,22 @@ const r = new Snoowrap({
 
 r.config({ continueAfterRatelimitError: true })
 
+const rInbox = new Snoowrap({
+	userAgent: process.env.USER_AGENT,
+	clientId: process.env.APP_ID_INBOX,
+	clientSecret: process.env.API_SECRET_INBOX,
+	username: process.env.REDDIT_USERNAME,
+	password: process.env.REDDIT_PASSWORD,
+})
+
+rInbox.config({ continueAfterRatelimitError: true })
+
 let subreddits = require('../data/subreddits.json')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
     subreddit: subredditnames,//process.env.SUBREDDIT,
-    limit: 2,
+    limit: 1,
     pollTime: 20000
 })
 
@@ -454,16 +464,16 @@ const createSubmission = (title, text) => {
     .submitSelfpost({title: title, text: text})
 }
 const getInbox = () => {
-    return r.getInbox({filter: 'messages'})
+    return rInbox.getInbox({filter: 'messages'})
 }
 const getCommentStream = () => {
-    return r.getInbox({filter: 'comments'})
+    return rInbox.getInbox({filter: 'comments'})
 }
 const markMessageAsRead = (id) => {
-    return r.getMessage(id).markAsRead()
+    return rInbox.getMessage(id).markAsRead()
 }
 const replyToMessage = (id, text) => {
-    return r.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+    return rInbox.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
 }
 const setUserFlair = (user, flair) => {
     r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair})
