@@ -13,7 +13,8 @@ const getWalletAddress = (string) => {
     return string.match(regex)[3]
 }
 const getAmountFromCommand = (string) => {
-    let regex = /([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    // let regex = /([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    let regex = /([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?|all/
     if (!string.match(regex)) {
         return false
     }
