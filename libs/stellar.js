@@ -93,7 +93,13 @@ const paymentListener = () => {
                             return
                         }
                         updateBalance(memo.toLowerCase(), parseFloat(amount), "CANNACOIN")
-                        createMessage(memo, "Funds deposited", `You deposited ${amount} ${asset_code} into your account`)
+                        try {
+                            createMessage(memo, 'Funds deposited', `You deposited ${amount} ${asset_code} into your account`)
+                        } catch (error) {
+                            console.log("Failed to send message?")
+                            console.log(error)
+                        }
+                        
                     })
                     
                 },

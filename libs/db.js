@@ -218,6 +218,13 @@ const fetchRewardPostStats = async () => {
         const collection = db.collection('post_logs')
         const results = await collection.aggregate(
             [
+                { $match: { 
+                    ts: {
+                        $gte: new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm')),
+                        $lte: new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm'))
+                        }
+                    }
+                },
                 {
                     $group:
                     {
@@ -227,6 +234,60 @@ const fetchRewardPostStats = async () => {
                 }
             ]
         ).toArray()
+        resolve(results[0])
+    })
+}
+const fetchRewardPostStatsCron = async () => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.aggregate(
+            [
+                { $match: { 
+                    ts: {
+                        $gte: new Date(moment().subtract(1,'months').startOf('month').format('YYYY-MM-DD hh:mm')),
+                        $lte: new Date(moment().subtract(1,'months').endOf('month').format('YYYY-MM-DD hh:mm'))
+                        }
+                    }
+                },
+                {
+                    $group:
+                    {
+                        _id: "total_karma",
+                        karma: { $sum: "$score" },
+                    }
+                }
+            ]
+        ).toArray()
+        resolve(results[0])
+    })
+}
+
+const fetchRewardPostStatsMonth = async (month) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('post_logs')
+        const results = await collection.aggregate(
+            [
+                { $match: { 
+                    ts: {
+                        $gte: new Date(moment(new Date(`${month}-01-2023`)).startOf('month').format('YYYY-MM-DD hh:mm')),
+                        $lte: new Date(moment(new Date(`${month}-01-2023`)).endOf('month').format('YYYY-MM-DD hh:mm'))
+                        }
+                    }
+                },
+                {
+                    $group:
+                    {
+                        _id: "total_karma",
+                        karma: { $sum: "$score" },
+                    }
+                }
+            ]
+        ).toArray()
+        console.log(results)
         resolve(results[0])
     })
 }
@@ -343,6 +404,8 @@ module.exports = {
     botLogger,
     recordPost,
     fetchRewardPostStats,
+    fetchRewardPostStatsCron,
+    fetchRewardPostStatsMonth,
     fetchRewardRecordsBack,
     fetchRewardRecordsCurrent,
     fetchLeaderboard,

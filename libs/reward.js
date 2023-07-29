@@ -1,6 +1,6 @@
 require('dotenv').config()
-const rewardArray = require('./data/rewards.json')
-const runtimeCount = require('./data/runtime.json')
+const rewardArray = require('../data/rewards.json')
+const runtimeCount = require('../data/runtime.json')
 
 
 const calculateRewardPerUser = (upvotes) => {

@@ -4,7 +4,7 @@ const axios = require('axios')
 
 const reddit = require('./reddit')
 const { calculateRewardPerUser } = require('./reward')
-const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers, fetchRewardRecordsCurrent } = require('./db')
+const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers, fetchRewardRecordsCurrent, fetchRewardPostStatsMonth, distributeReward, fetchRewardPostStatsCron } = require('./db')
 
 const fs = require('fs');
 const { logger } = require('./util');
@@ -16,7 +16,9 @@ const karmaPayout = async () => {
         logger("Monthly cronjob started")
 
         let karma_users = await fetchRewardStats() // Fallback: Will be removed
-        let { karma } = await fetchRewardPostStats()
+        let { karma } = await fetchRewardPostStatsCron()
+        // let { karma } = await fetchRewardPostStatsMonth()
+        
         let records = await fetchRewardRecords()
         let records_users = await fetchRewardRecordsUsers() // Fallback: Will be removed
         let reward = calculateRewardPerUser(karma+karma_users.karma)
@@ -30,22 +32,44 @@ const karmaPayout = async () => {
         /**
          * Swap out 'conrecords' for 'records'
          */
-        const payout = conrecords.map((user, i) => {
-            return new Promise(resolve => {
-                setTimeout(async () => {
-                    await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send ${Math.floor(reward*user.score)} u/${user._id.toLowerCase()}`)
-                    logger(`${user._id.toLowerCase()}: Paid out: ${Math.floor(reward*user.score)}`)
-                    resolve(true)
+        let continueRun = false
+        // const payout = await conrecords.map((user, i) => {
+        //     return new Promise(resolve => {
+        //         setTimeout(async () => {
+        //             // if (user._id.toLowerCase() == "himbad") {
+        //             //     continueRun = true
+        //             // }
+        //             // if (!continueRun) {
+        //             //     console.log("skipping")
+        //             //     return
+        //             // }
+        //             if (Math.floor(reward*user.score) <= 0) {
+        //                 console.log("no canna paid out")
+        //                 return
+        //             }
+        //             // console.log("continuing")
+        //             // return
+        //             await distributeReward(user._id.toLowerCase(), Math.floor(reward*user.score), 'CANNACOIN')
+        //             try {
+        //                 await reddit.createMessage(user._id.toLowerCase(), 'Karma for CANNA', `You received ${Math.floor(reward*user.score)} CANNACOIN for your karma this month!`)
+        //             } catch (error) {
+        //                 console.log("Hit rate limit", user._id.toLowerCase())
+        //             }
+                    
+        //             // await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send ${Math.floor(reward*user.score)} u/${user._id.toLowerCase()}`)
+        //             logger(`${user._id.toLowerCase()}: Paid out: ${Math.floor(reward*user.score)}`)
+        //             resolve(true)
+        //             // console.log("SKIPPING")
 
-                }, i * 15000)
-            })
-        })
+        //         }, i * 25000)
+        //     })
+        // })
 
-        /**
-         * Wait for payout Promise
-         * in order for the code to run correctly
-         */
-        Promise.all(payout).then((response) => {
+        // /**
+        //  * Wait for payout Promise
+        //  * in order for the code to run correctly
+        //  */
+        // Promise.all(payout).then((response) => {
             runtimeFile.count++
             runtimeFile.lastrun = new Date()
             
@@ -83,7 +107,7 @@ const karmaPayout = async () => {
             }).catch(error => {
                 reject(error)
             })
-        });
+        // });
     })
 }
 
@@ -93,7 +117,11 @@ const collectKarma = async () => {
         axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
         .then(({data}) => {
             data.data.children.map(async (item, index) => {
-                // console.log(JSON.stringify(item))
+                
+                if (item.data.author_is_blocked || item.data.banned_by != null) {
+                    return false
+                }
+
                 let post = {
                     id: item.data.id, 
                     title: item.data.title,
@@ -116,7 +144,6 @@ const collectKarma = async () => {
                             return
                         }
                         comments.map(comment => {
-                            
                             let upvotes = comment.ups-comment.downs
 
                             let post = {
@@ -157,18 +184,20 @@ const collectKarma = async () => {
 const showDataset = async () => {
     return new Promise(async resolve => {
         let { karma } = await fetchRewardPostStats()
-        let karma_users = await fetchRewardStats()
+        // let { karma } = await fetchRewardPostStatsMonth('06')
+        
+        // let karma_users = await fetchRewardStats()
         let records = await fetchRewardRecordsCurrent()
-        let reward = calculateRewardPerUser(karma+karma_users.karma)
+        let reward = calculateRewardPerUser(karma)
         // console.log("Karma & payout stats", karma_users.karma)
         // console.log("Karma:", karma)
         // console.log("Users:", records.length)
         // console.log("Karma worth:", reward)
         let payload = {
-            total_karma: (karma+karma_users.karma),
+            total_karma: (karma),
             total_users: records.length,
             payout_per_karma: reward,
-            total_payout: parseFloat((karma+karma_users.karma)*reward).toFixed(7)
+            total_payout: parseFloat((karma)*reward).toFixed(7)
         }
        
         resolve(payload)

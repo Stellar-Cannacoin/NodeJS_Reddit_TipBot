@@ -81,7 +81,7 @@ const messageStream = async () => {
                         
                     })
                 }
-            }, 1000*index);
+            }, 2000*index);
         }))
         return true
     } catch (error) {
@@ -117,7 +117,7 @@ stream.on("item", async comment => {
     await r.getComment(comment.parent_id).fetch().then(async parentComment => {
         let getRedditCommand = getBotCommand(comment.body)
         switch (getRedditCommand) {
-            case '!canna2v2': 
+            case '!canna': 
                 let getTipAmountComment = getTipAmount(comment.body)
                 if (!getTipAmount) {
                     return
@@ -163,14 +163,18 @@ stream.on("item", async comment => {
                 })
                 if (!tipResponse.upsertedCount) {
                     createComment(comment, `Sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-                    createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                    setTimeout(async () => {
+                        createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${(parseFloat(balanceB.balances.CANNACOIN)+parseFloat(getTipAmountComment)).toFixed(2)}`)
+                    }, 1000)
                     return
                 }
                 createComment(comment, `Creating a new account and sent `+'`'+getTipAmountComment+' CANNACOIN` to '+`u/${parentComment.author.name}`)
-                createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${getTipAmountComment}`)
+                setTimeout(async () => {
+                    createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${(parseFloat(getTipAmountComment)).toFixed(2)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                }, 1000)
                 updateOptIn(parentComment.author.name, 1)
             break
-            case '!canna': 
+            case '!canna2Old': 
                 logger("Got mirror tip")
                 let getTipAmountCommentMirror = getTipAmount(comment.body)
                 if (!getTipAmount) {
@@ -275,7 +279,7 @@ const executeCommand = async (message) => {
     let botCommandRaw = getBotCommand(message.body)
 
     if (!botCommandRaw) {
-        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
         markMessageAsRead(message.id)
         return false
     }
@@ -351,7 +355,7 @@ const executeCommand = async (message) => {
                 markMessageAsRead(message.id)
                 return
             }
-            return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+            // return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
             
 
             let balance = await getUserBalance(message.author.name)
@@ -368,7 +372,7 @@ const executeCommand = async (message) => {
                     let amount_negative = -Math.abs(amount)
 
                     updateBalance(message.author.name, amount_negative, "CANNACOIN")
-                    replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet}`)
+                    replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
                     markMessageAsRead(message.id)
 
                     //let balanceA = await getUserBalance(message.author.name)
@@ -399,7 +403,7 @@ const executeCommand = async (message) => {
         break
         
         case 'help':
-            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
         
@@ -413,7 +417,7 @@ const executeCommand = async (message) => {
 
         break
         default:
-            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna2v {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
         break
     }
@@ -427,16 +431,19 @@ const executeCommand = async (message) => {
 }
 
 const createMessage = (user, title, text) => {
-    try {
-
-    } catch (error) {
-
+    if (!user) {
+        return
     }
-    return r.composeMessage({
-        to: user,
-        subject: title,
-        text: text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)'
-    })
+    try {
+        return r.composeMessage({
+            to: user,
+            subject: title,
+            text: text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)'
+        })
+    } catch (error) {
+        return error
+    }
+   
 }
 
 const createDistMessage = async (user, title, text) => {
@@ -456,7 +463,7 @@ const createDistMessage = async (user, title, text) => {
 }
 
 const createComment = (comment, text) => {
-    comment.reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+    comment.reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
 }
 
 const createSubmission = (title, text) => {
@@ -470,6 +477,10 @@ const getCommentStream = () => {
     return rInbox.getInbox({filter: 'comments'})
 }
 const markMessageAsRead = (id) => {
+    return rInbox.getMessage(id).markAsRead()
+}
+const markAllMessagesAsRead = (id) => {
+    return rInbox.markMessagesAsRead
     return rInbox.getMessage(id).markAsRead()
 }
 const replyToMessage = (id, text) => {

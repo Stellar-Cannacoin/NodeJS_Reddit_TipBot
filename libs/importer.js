@@ -13,7 +13,11 @@ const importFromSQL = async () => {
                 user: account.user.toLowerCase(),
                 balances: {
                     CANNACOIN: convertedbalance
-                }
+                },
+                memo: account.memo,
+                optin: account.optin,
+                created: account.created,
+                updated: account.updated
             }
             console.log(accountobject.user + "_"+convertedbalance, "CANNACOIN")
             await updateBalanceTest(accountobject)
@@ -42,7 +46,10 @@ const updateFromSQL = async () => {
                 balances: {
                     CANNACOIN: convertedbalance
                 },
-                optin: account.optin
+                memo: account.memo,
+                optin: account.optin,
+                created: account.created,
+                updated: account.updated
             }
             console.log(accountobject.user + "_"+convertedbalance, "CANNACOIN")
             // await updateBalanceTest(accountobject)
