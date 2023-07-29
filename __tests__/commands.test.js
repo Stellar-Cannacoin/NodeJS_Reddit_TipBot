@@ -16,6 +16,10 @@ test('commandSend', () => {
     expect(getBotCommand('send 10 u/Stellar__TipBot')).toBe('send');
 });
 
+test('commandSendAll', () => {
+    expect(getBotCommand('send all GBP6NLT4XPWZLPSLJ54AWPMVKA6R6X44RGJFVPYDAWLZ4PJNDVQJA2GC')).toBe('send');
+});
+
 test('commandSendGetUser', () => {
     expect(getWalletAddress(`send 10 u/${process.env.REDDIT_USERNAME}`)).toBe(`u/${process.env.REDDIT_USERNAME}`);
 });
