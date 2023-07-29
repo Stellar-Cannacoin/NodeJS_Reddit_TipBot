@@ -313,9 +313,11 @@ const executeCommand = async (message) => {
             if (message.body.includes(' all ')) {
                 console.log("Replacing 'all' with token balance", tokenbalance)
                 amount = tokenbalance
+            } else {
+                amount = getAmountFromCommand(message.body)
             }
 
-            amount = getAmountFromCommand(message.body)
+            
 
             if (tokenbalance < amount) {
                 replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
