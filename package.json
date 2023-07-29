@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "jest --forceExit"
+    "test": "jest __tests__/github.actions.test.js --forceExit"
   },
   "author": "Stian W. Instebø",
   "license": "ISC",

@@ -84,10 +84,10 @@ test('getAmountFromCommand', () => {
 });
 
 test('getBotCommand', () => {
-    expect(getBotCommand('!cannatest 1 u/test')).toBe('!cannatest');
+    expect(getBotCommand('!canna 1 u/test')).toBe('!canna');
     expect(getBotCommand('balance')).toBe('balance');
     expect(getBotCommand('deposit')).toBe('deposit');
-    expect(getBotCommand('send')).toBe('send');
+    expect(getBotCommand('send 10 u/jest')).toBe('send');
     expect(getBotCommand('link')).toBe(false);
     expect(getBotCommand('help')).toBe('help');
 });
