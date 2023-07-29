@@ -304,7 +304,7 @@ const executeCommand = async (message) => {
         break
 
         case 'send':
-            let wallet = getWalletAddress(message.body.toLowerCase())
+            
             let amount = 0;
 
             let balance = await getUserBalance(message.author.name)
@@ -313,9 +313,12 @@ const executeCommand = async (message) => {
             if (message.body.includes(' all ')) {
                 console.log("Replacing 'all' with token balance", tokenbalance)
                 amount = tokenbalance
+                message.body = message.body.replace('all', tokenbalance)
             } else {
                 amount = getAmountFromCommand(message.body)
             }
+
+            let wallet = getWalletAddress(message.body.toLowerCase())
 
             
 
