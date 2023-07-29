@@ -504,7 +504,7 @@ const markAllMessagesAsRead = (id) => {
     return rInbox.getMessage(id).markAsRead()
 }
 const replyToMessage = (id, text) => {
-    return rInbox.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)  \n  \n  \n  [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
+    return rInbox.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/5Hy5WkHgZ5) | [`GitHub`](https://github.com/stellar-Cannacoin)')
 }
 const setUserFlair = (user, flair) => {
     r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair})
