@@ -304,11 +304,31 @@ const executeCommand = async (message) => {
         break
 
         case 'send':
-            
             let wallet = getWalletAddress(message.body.toLowerCase())
             let amount = getAmountFromCommand(message.body)
 
+            if (message.body.includes(' all ')) {
+                console.log("Replacing 'all' with token balance", tokenbalance)
+                amount = tokenbalance
+                // message.body = message.body.replace('all', tokenbalance)
+            }
+
+            let balance = await getUserBalance(message.author.name)
+            let tokenbalance = balance?.balances?.CANNACOIN || 0
+
+            if (tokenbalance < amount) {
+                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
+                markMessageAsRead(message.id)
+                return
+            }
+            
+            
+
+            
+            
+
             console.log("body: ", message.body)
+            console.log("amount: ", amount)
             console.log("wallet: ", wallet)
 
             if (!wallet || wallet == null) {
@@ -358,13 +378,7 @@ const executeCommand = async (message) => {
             // return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
             
 
-            let balance = await getUserBalance(message.author.name)
-            let tokenbalance = balance?.balances?.CANNACOIN || 0
-            if (tokenbalance < amount) {
-                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
-                markMessageAsRead(message.id)
-                return
-            }
+            
             console.log("wallet uppercase", wallet.toUpperCase())
             withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
             .then(async data => {
