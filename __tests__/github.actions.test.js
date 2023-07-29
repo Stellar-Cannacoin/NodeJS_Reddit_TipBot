@@ -1,4 +1,4 @@
-const { getWalletAddress, getAmountFromCommand, getBotCommand } = require('../libs/reddit')
+const { getWalletAddress, getAmountFromCommand, getBotCommand } = require('../libs/commands')
 
 test('getWalletAddress', () => {
     expect(getWalletAddress('send 10 u/jest')).toBe(`u/jest`);

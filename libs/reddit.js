@@ -307,14 +307,13 @@ const executeCommand = async (message) => {
             let wallet = getWalletAddress(message.body.toLowerCase())
             let amount = getAmountFromCommand(message.body)
 
+            let balance = await getUserBalance(message.author.name)
+            let tokenbalance = balance?.balances?.CANNACOIN || 0
+
             if (message.body.includes(' all ')) {
                 console.log("Replacing 'all' with token balance", tokenbalance)
                 amount = tokenbalance
-                // message.body = message.body.replace('all', tokenbalance)
             }
-
-            let balance = await getUserBalance(message.author.name)
-            let tokenbalance = balance?.balances?.CANNACOIN || 0
 
             if (tokenbalance < amount) {
                 replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
