@@ -63,7 +63,13 @@ logger('Balance listener running')
  * Message Stream job
  */
 cron.schedule('* * * * *', async () => {
-    reddit.messageStream()
+    logger("Checking messages")
+    try {
+        reddit.messageStream()
+    } catch (error) {
+        logger(error)
+    }
+    
 })
 
 /**
