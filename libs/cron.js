@@ -115,8 +115,8 @@ const collectKarma = async () => {
     return new Promise(async (resolve, reject) => {
         logger(`Daily cronjob started https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
         axios.get(`https://old.reddit.com/r/${process.env.SUBREDDIT}/new/.json`)
-        .then(({data}) => {
-            data.data.children.map(async (item, index) => {
+        .then(async ({data}) => {
+            await Promise.all(data.data.children.map(async (item, index) => {
                 
                 if (item.data.author_is_blocked || item.data.banned_by != null) {
                     return false
@@ -131,8 +131,8 @@ const collectKarma = async () => {
                     downs: item.data.downs,
                     ts: new Date(item.data.created*1000)
                 }
-                if (!post.user.includes("automoderator") || !post.user.includes("canna_tips") || !post.user.includes("burnsivxx")) {
-                    recordPost(post)
+                if (!post.user.includes("Automoderator") || !post.user.includes("Canna_tips") || !post.user.includes("Burnsivxx")) {
+                    await recordPost(post)
                 }
                 
 
@@ -145,7 +145,7 @@ const collectKarma = async () => {
                         if (!Array.isArray(comments)) {
                             return
                         }
-                        comments.map(comment => {
+                        await Promise.all( comments.map(async comment => {
                             let upvotes = comment.ups-comment.downs
 
                             let post = {
@@ -158,21 +158,22 @@ const collectKarma = async () => {
                                 downs: comment.downs,
                                 ts: new Date(comment.created*1000)
                             }
-                            if (!post.user.includes("automoderator") || !post.user.includes("canna_tips") || !post.user.includes("burnsivxx")) {
-                                return false
-                            }
+                            // if (!post.user.includes("automoderator") || !post.user.includes("canna_tips") || !post.user.includes("burnsivxx")) {
+                            //     return false
+                            // }
                             if (post.user == "[deleted]") {
                                 return false
                             }
-                            recordPost(post)
+                            await recordPost(post)
                             return true
-                        })
+                        }))
                         return true
                     } catch (error) {
                         console.log(error)
                     }
                 }, 2000*index);
-            })
+            }))
+            
             resolve(data.data.children)
             
         })
