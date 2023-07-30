@@ -27,6 +27,7 @@ const rInbox = new Snoowrap({
 rInbox.config({ continueAfterRatelimitError: true })
 
 let subreddits = require('../data/subreddits.json')
+const { showDataset } = require('./cron')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
@@ -253,7 +254,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -261,7 +262,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -442,6 +443,10 @@ const executeCommand = async (message) => {
             updateOptIn(message.author.name, 0)
             replyToMessage(message.id,  `You have __opted out__ to tipbot notifications`)
 
+        break
+        case 'stats':
+            let stats = await showDataset()
+            replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: ${stats.total_karma}\n\n - Number of contributors: ${stats.total_users}\n\n- Each karma is worth: ${stats.payout_per_karma}`)
         break
         default:
             replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
