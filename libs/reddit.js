@@ -37,7 +37,7 @@ const rFlair = new Snoowrap({
 rFlair.config({ continueAfterRatelimitError: true })
 
 let subreddits = require('../data/subreddits.json')
-const { showDataset } = require('./cron')
+const { showDataset } = require('./reddit/karma')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
@@ -241,17 +241,6 @@ const getComments = (id) => {
     })
 }
 
-const getPostComments = (id) => {
-    return new Promise(async resolve => {
-        try {
-            resolve(rFlair.getSubmission(id).comments)
-        } catch (error) {
-            logger(`Error. ${error}`)
-
-        }
-        
-    })
-}
 
 const getTipAmount = (string) => {
     let regex = /!canna2v|!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
@@ -548,7 +537,7 @@ module.exports = {
     getWalletAddress,
     getAmountFromCommand,
     getComments,
-    getPostComments,
+    // getPostComments,
     getTipAmount,
     getBotCommand,
     getBotCommandFull,

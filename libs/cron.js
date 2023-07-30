@@ -8,6 +8,7 @@ const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, r
 
 const fs = require('fs');
 const { logger } = require('./util');
+const { getPostComments } = require('./reddit/collection')
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
@@ -33,43 +34,43 @@ const karmaPayout = async () => {
          * Swap out 'conrecords' for 'records'
          */
         let continueRun = false
-        // const payout = await conrecords.map((user, i) => {
-        //     return new Promise(resolve => {
-        //         setTimeout(async () => {
-        //             // if (user._id.toLowerCase() == "himbad") {
-        //             //     continueRun = true
-        //             // }
-        //             // if (!continueRun) {
-        //             //     console.log("skipping")
-        //             //     return
-        //             // }
-        //             if (Math.floor(reward*user.score) <= 0) {
-        //                 console.log("no canna paid out")
-        //                 return
-        //             }
-        //             // console.log("continuing")
-        //             // return
-        //             await distributeReward(user._id.toLowerCase(), Math.floor(reward*user.score), 'CANNACOIN')
-        //             try {
-        //                 await reddit.createMessage(user._id.toLowerCase(), 'Karma for CANNA', `You received ${Math.floor(reward*user.score)} CANNACOIN for your karma this month!`)
-        //             } catch (error) {
-        //                 console.log("Hit rate limit", user._id.toLowerCase())
-        //             }
+        const payout = await conrecords.map((user, i) => {
+            return new Promise(resolve => {
+                setTimeout(async () => {
+                    // if (user._id.toLowerCase() == "himbad") {
+                    //     continueRun = true
+                    // }
+                    // if (!continueRun) {
+                    //     console.log("skipping")
+                    //     return
+                    // }
+                    if (Math.floor(reward*user.score) <= 0) {
+                        console.log("no canna paid out")
+                        return
+                    }
+                    // console.log("continuing")
+                    // return
+                    await distributeReward(user._id.toLowerCase(), Math.floor(reward*user.score), 'CANNACOIN')
+                    try {
+                        await reddit.createMessage(user._id.toLowerCase(), 'Karma for CANNA', `You received ${Math.floor(reward*user.score)} CANNACOIN for your karma this month!`)
+                    } catch (error) {
+                        console.log("Hit rate limit", user._id.toLowerCase())
+                    }
                     
-        //             // await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send ${Math.floor(reward*user.score)} u/${user._id.toLowerCase()}`)
-        //             logger(`${user._id.toLowerCase()}: Paid out: ${Math.floor(reward*user.score)}`)
-        //             resolve(true)
-        //             // console.log("SKIPPING")
+                    // await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send ${Math.floor(reward*user.score)} u/${user._id.toLowerCase()}`)
+                    logger(`${user._id.toLowerCase()}: Paid out: ${Math.floor(reward*user.score)}`)
+                    resolve(true)
+                    // console.log("SKIPPING")
 
-        //         }, i * 25000)
-        //     })
-        // })
+                }, i * 25000)
+            })
+        })
 
         // /**
         //  * Wait for payout Promise
         //  * in order for the code to run correctly
         //  */
-        // Promise.all(payout).then((response) => {
+        Promise.all(payout).then((response) => {
             runtimeFile.count++
             runtimeFile.lastrun = new Date()
             
@@ -107,7 +108,7 @@ const karmaPayout = async () => {
             }).catch(error => {
                 reject(error)
             })
-        // });
+        });
     })
 }
 
@@ -139,7 +140,7 @@ const collectKarma = async () => {
                 setTimeout(async function () {
                     try {
                         console.log("POST ID:", post.id)
-                        let comments = await reddit.getPostComments(post.id);
+                        let comments = await reddit.getComments(post.id);
                         // console.log(comments)
 
                         if (!Array.isArray(comments)) {
