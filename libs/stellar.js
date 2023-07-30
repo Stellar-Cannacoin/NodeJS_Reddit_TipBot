@@ -18,10 +18,21 @@ const startWalletListener = (user) => {
     return `Stellar listener running`
 }
 
+/**
+ * Returns the path to send deposit funds to
+ * @param {*} user 
+ * @returns 
+ */
 const depositToWallet = (user) => {
     return `Send payment to the address '${issuerPair.publicKey()}' with the memo '${user}'`
 }
 
+/**
+ * Create a fee bump transaction
+ * @param {Object} error StellarSDK error
+ * @param {Account} feeIssuer StellarSDK Account object
+ * @returns 
+ */
 const feeBumpTransaction = (error, feeIssuer) => {
     return new Promise((resolve, reject) => {
         const lastTx = new stellar.TransactionBuilder.fromXDR(decodeURIComponent(error.config.data.split('tx=')[1]), stellar.Networks.PUBLIC);
@@ -45,6 +56,11 @@ const feeBumpTransaction = (error, feeIssuer) => {
     })
 }
 
+/**
+ * Check if the error is a fee error
+ * @param {Object} error StellarSDK error
+ * @returns {Boolean} true/false
+ */
 const isFeeError = (error) => {
     return (
       error.response !== undefined &&
@@ -54,6 +70,11 @@ const isFeeError = (error) => {
     );
 }
 
+/**
+ * Check if the string/address is a valid Stellar address
+ * @param {String} address Stellar wallet address
+ * @returns {Boolean} true/false
+ */
 const isValidAddress = (address) => {
     let validAddress = /([A-Za-z]+([0-9]+[A-Za-z]+)+)/.test(address);
     let validAddressChain = StrKey.isValidEd25519PublicKey(address);
@@ -115,6 +136,13 @@ const paymentListener = () => {
     
 }
 
+/**
+ * Create a bulk distribution transaction
+ * @param {*} transactions
+ * @param {*} reward 
+ * @param {*} account 
+ * @returns 
+ */
 const createDistributionTransaction = (transactions, reward, account) => {
     return new Promise(async resolve => {
         let StellarOperations = []
@@ -137,6 +165,11 @@ const createDistributionTransaction = (transactions, reward, account) => {
     
 }
 
+/**
+ * Submit bulk transaction
+ * @param {*} transactions 
+ * @returns 
+ */
 const submitDistributionTransaction = (transactions) => {
     return new Promise((resolve, reject) => {
         // console.log(JSON.stringify(txArray))
@@ -172,6 +205,12 @@ const submitDistributionTransaction = (transactions) => {
     })
 }
 
+/**
+ * Create distribtion tranaction payout
+ * @param {*} transaction 
+ * @param {*} reward 
+ * @returns 
+ */
 const createDistributionTransactionPayout = (transaction, reward) => {
     return new Promise((resolve, reject) => {
         console.log(JSON.stringify(transaction))

@@ -381,11 +381,11 @@ const executeCommand = async (message) => {
                 markMessageAsRead(message.id)
                 return
             }
-            // return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
-            
 
+            if (process.env.ENABLE_WITHDRAWALS == 0) {
+                return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+            }
             
-            console.log("wallet uppercase", wallet.toUpperCase())
             withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
             .then(async data => {
                 if (data) {
@@ -395,8 +395,15 @@ const executeCommand = async (message) => {
                     replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
                     markMessageAsRead(message.id)
 
-                    //let balanceA = await getUserBalance(message.author.name)
-                    // setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                    /**
+                     * Uncomment to update user flair with balance
+                     */
+
+                    /**
+                     * let balanceA = await getUserBalance(message.author.name)
+                     * setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                     */
+                    
                     return
                 }
                 replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)

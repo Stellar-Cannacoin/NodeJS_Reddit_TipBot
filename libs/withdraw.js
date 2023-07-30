@@ -1,8 +1,8 @@
 /**
  * withdraw.js
  * Handles withdrawal of user funds on Stellar Blockchain,
- * traansfers from custodial wallet (this bot) to an non-custodial
- * wallet
+ * traansfers from custodial wallet (this bot) to an 
+ * non-custodial wallet
  */
 require('dotenv').config()
 
@@ -15,7 +15,7 @@ const server = new stellar.Server("https://horizon.stellar.org")
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY)
 
 /**
- * 
+ * Withdraw funds to wallet, calling the StellarSDK 
  * @param {*} memo String
  * @param {*} amount String
  * @param {*} wallet String (uppercase)
@@ -52,6 +52,14 @@ const withdrawToWallet = (memo, amount, wallet) => {
             resolve(true)
         })
         .catch(async (error) => {
+            /**
+             * Log error to better understand whats failing
+             */
+            console.log("error sending payment", error)
+
+            /**
+             * Check if the error is a fee error or a generic one
+             */
             if (!isFeeError(error)) {
                 return resolve(error)
             }
@@ -59,15 +67,24 @@ const withdrawToWallet = (memo, amount, wallet) => {
              * Catch transaction fails due to fees
              * Resubmits the tx to the chain with a higher fee
              */
-            let bumpTransaction = await feeBumpTransaction(error, issuerPair);
-            if (!bumpTransaction) {
-                return resolve(bumpTransaction)
-            }
-            resolve(true)
+            feeBumpTransaction(error, issuerPair)
+            .then(data => {
+                console.log(data)
+                resolve(true)
+            })
+            .catch(error => {
+                console.log(error)
+                reject(error)
+            })
         });
     })
 };
 
+/**
+ * Create a fee bump transaction
+ * @param {Object} error Error presented from StellarSDK
+ * @returns {Boolean} true/false
+ */
 const feeBumpTransaction = (error) => {
     return new Promise((resolve, reject) => {
         const lastTx = new stellar.TransactionBuilder.fromXDR(decodeURIComponent(error.config.data.split('tx=')[1]), stellar.Networks.PUBLIC);
@@ -86,7 +103,7 @@ const feeBumpTransaction = (error) => {
         }).then(() => {
             resolve(true)
         }).catch(error => {
-            resolve(false)
+            reject(error)
         });
     })
 }
