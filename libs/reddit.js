@@ -231,6 +231,18 @@ const getComments = (id) => {
     })
 }
 
+const getPostComments = (id) => {
+    return new Promise(async resolve => {
+        try {
+            resolve(r.getSubmission(id).comments)
+        } catch (error) {
+            logger(`Error. ${error}`)
+
+        }
+        
+    })
+}
+
 const getTipAmount = (string) => {
     let regex = /!canna2v|!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
     if (!string.match(regex)) {
@@ -526,6 +538,7 @@ module.exports = {
     getWalletAddress,
     getAmountFromCommand,
     getComments,
+    getPostComments,
     getTipAmount,
     getBotCommand,
     getBotCommandFull,
