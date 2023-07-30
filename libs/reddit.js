@@ -38,6 +38,7 @@ rFlair.config({ continueAfterRatelimitError: true })
 
 let subreddits = require('../data/subreddits.json')
 const { showDataset } = require('./reddit/karma')
+const { createMessage } = require('./reddit/inbox')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
