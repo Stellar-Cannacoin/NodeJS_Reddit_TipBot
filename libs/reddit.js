@@ -26,6 +26,16 @@ const rInbox = new Snoowrap({
 
 rInbox.config({ continueAfterRatelimitError: true })
 
+const rFlair = new Snoowrap({
+	userAgent: process.env.USER_AGENT,
+	clientId: process.env.APP_ID_FLAIR,
+	clientSecret: process.env.API_SECRET_FLAIR,
+	username: process.env.REDDIT_USERNAME,
+	password: process.env.REDDIT_PASSWORD,
+})
+
+rFlair.config({ continueAfterRatelimitError: true })
+
 let subreddits = require('../data/subreddits.json')
 const { showDataset } = require('./cron')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
@@ -234,7 +244,7 @@ const getComments = (id) => {
 const getPostComments = (id) => {
     return new Promise(async resolve => {
         try {
-            resolve(r.getSubmission(id).comments)
+            resolve(rFlair.getSubmission(id).comments)
         } catch (error) {
             logger(`Error. ${error}`)
 
