@@ -131,7 +131,7 @@ const collectKarma = async () => {
                     downs: item.data.downs,
                     ts: new Date(item.data.created*1000)
                 }
-                if (!post.user.includes("AutoModerator") || !post.user.includes("Canna_Tips") || !post.user.includes("Burnsivxx")) {
+                if (!post.user.includes("automoderator") || !post.user.includes("canna_tips") || !post.user.includes("burnsivxx")) {
                     recordPost(post)
                 }
                 
@@ -152,12 +152,12 @@ const collectKarma = async () => {
                                 parent_id: item.data.id,
                                 title: comment.body,
                                 score: upvotes,
-                                user: comment.author.name,
+                                user: comment.author.name.toLowerCase(),
                                 ups: comment.ups,
                                 downs: comment.downs,
                                 ts: new Date(comment.created*1000)
                             }
-                            if (!post.user.includes("AutoModerator") || !post.user.includes("Canna_Tips") || !post.user.includes("Burnsivxx")) {
+                            if (!post.user.includes("automoderator") || !post.user.includes("canna_tips") || !post.user.includes("burnsivxx")) {
                                 return false
                             }
                             if (post.user == "[deleted]") {
