@@ -63,7 +63,7 @@ logger('Balance listener running')
 /**
  * Message Stream job
  */
-cron.schedule('* * * * *', async () => {
+cron.schedule('*/2 * * * *', async () => {
     logger("Checking messages")
     try {
         reddit.messageStream()
