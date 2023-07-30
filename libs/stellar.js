@@ -9,7 +9,7 @@ const { tokens } = require(`../content/tokens`);
 const { Keypair, TimeoutInfinite, StrKey } = require('stellar-base');
 const stellar = require('stellar-sdk');
 const { updateBalance } = require('./db');
-const { createMessage } = require('./reddit');
+const { createMessage } = require('./reddit/inbox');
 
 const server = new stellar.Server("https://horizon.stellar.org");
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY);

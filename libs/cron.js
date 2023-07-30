@@ -8,7 +8,7 @@ const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, r
 
 const fs = require('fs');
 const { logger } = require('./util');
-const { getPostComments } = require('./reddit/collection')
+const { createMessage } = require('./reddit/inbox')
 const fileName = './data/runtime.json'
 const runtimeFile = require(fileName)
 
@@ -52,7 +52,7 @@ const karmaPayout = async () => {
                     // return
                     await distributeReward(user._id.toLowerCase(), Math.floor(reward*user.score), 'CANNACOIN')
                     try {
-                        await reddit.createMessage(user._id.toLowerCase(), 'Karma for CANNA', `You received ${Math.floor(reward*user.score)} CANNACOIN for your karma this month!`)
+                        await createMessage(user._id.toLowerCase(), 'Karma for CANNA', `You received ${Math.floor(reward*user.score)} CANNACOIN for your karma this month!`)
                     } catch (error) {
                         console.log("Hit rate limit", user._id.toLowerCase())
                     }
