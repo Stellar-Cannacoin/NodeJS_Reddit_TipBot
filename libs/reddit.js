@@ -446,7 +446,7 @@ const executeCommand = async (message) => {
         break
         case 'stats':
             let stats = await showDataset()
-            replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: ${stats.total_karma}\n\n - Number of contributors: ${stats.total_users}\n\n- Each karma is worth: ${stats.payout_per_karma}`)
+            replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: ${stats.total_karma}\n\n- Number of contributors: ${stats.total_users}\n\n- Each karma is worth: ${stats.payout_per_karma}`)
         break
         default:
             replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
