@@ -464,7 +464,7 @@ const executeCommand = async (message) => {
             }
 
             console.log("Wallet link found", userWallet.wallet)
-            
+
             if (process.env.ENABLE_WITHDRAWALS == 0) {
                 return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
             }
@@ -504,8 +504,8 @@ const executeCommand = async (message) => {
                 markMessageAsRead(message.id)
                 return
             }
-            linkUserWallet(message.author.name.toLowerCase(), walletLink)
-            replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink}`)
+            linkUserWallet(message.author.name.toLowerCase(), walletLink.toUpperCase())
+            replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink.toUpperCase()}`)
             markMessageAsRead(message.id)
         break
 
