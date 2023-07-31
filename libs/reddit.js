@@ -465,6 +465,10 @@ const executeCommand = async (message) => {
 
             console.log("Wallet link found", userWallet.wallet)
             
+            if (process.env.ENABLE_WITHDRAWALS == 0) {
+                return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+            }
+            
             withdrawToWallet("Withdrawal", amountWithdraw, userWallet.wallet.toUpperCase())
             .then(async data => {
                 if (data) {
