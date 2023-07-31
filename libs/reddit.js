@@ -495,6 +495,11 @@ const executeCommand = async (message) => {
         
         case 'link':
             let walletLink = getWalletLinkAddress(message.body.toLowerCase())
+            if (!walletLink) {
+                replyToMessage(message.id,  `Invalid address provided. Please try again`)
+                markMessageAsRead(message.id)
+                return
+            }
             linkUserWallet(message.author.name.toLowerCase(), walletLink)
             replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink}`)
             markMessageAsRead(message.id)
