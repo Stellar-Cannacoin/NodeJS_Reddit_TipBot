@@ -178,6 +178,38 @@ const getUserKarma = async (user) => {
         
     })
 }
+const getUserWallet = async (user) => {
+    return new Promise(async resolve => {
+
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.findOne({user: user})
+        
+        if (!results) {
+            return resolve({message: "No user found"})
+        }
+
+        return resolve({_id: user, wallet: results?.wallet})
+        
+    })
+}
+const linkUserWallet = async (user, wallet) => {
+    return new Promise(async resolve => {
+
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.updateOne({user: user}, {$set: {wallet: wallet}})
+        
+        // if (!results) {
+        //     return resolve({message: "No user found"})
+        // }
+
+        return resolve(results)
+        
+    })
+}
 const fetchRewardRecordsUsers = async () => {
     return new Promise(async resolve => {
         await client.connect();
@@ -400,6 +432,8 @@ module.exports = {
     updateUserTest,
     getUserBalance,
     getUserKarma,
+    getUserWallet,
+    linkUserWallet,
     tipUser,
     botLogger,
     recordPost,

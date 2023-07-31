@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger } = require('./util')
 
@@ -253,10 +253,20 @@ const getTipAmount = (string) => {
 const getWalletAddress = (string) => {
     // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
     let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
+    // let regex = /link ([A-Za-z]+([0-9]+[A-Za-z]+)+)|send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
     if (!string.match(regex)) {
         return false
     }
     return string.match(regex)[3]
+}
+const getWalletLinkAddress = (string) => {
+    // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
+    // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
+    let regex = /link ([A-Za-z]+([0-9]+[A-Za-z]+)+)/
+    if (!string.match(regex)) {
+        return false
+    }
+    return string.match(regex)[1]
 }
 const getAmountFromCommand = (string) => {
     let regex = /([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
@@ -266,7 +276,7 @@ const getAmountFromCommand = (string) => {
     return string.match(regex)[0]
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -274,7 +284,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -317,7 +327,6 @@ const executeCommand = async (message) => {
         break
 
         case 'send':
-            
             let amount = 0;
 
             let balance = await getUserBalance(message.author.name)
@@ -340,11 +349,6 @@ const executeCommand = async (message) => {
                 markMessageAsRead(message.id)
                 return
             }
-            
-            
-
-            
-            
 
             console.log("body: ", message.body)
             console.log("amount: ", amount)
@@ -431,7 +435,54 @@ const executeCommand = async (message) => {
             replyToMessage(message.id, `Send the desired amount to the address `+'`'+`${process.env.WALLET_PUBLIC}`+'`'+` using the memo `+'`'+`${message.author.name.toLowerCase()}`+'`')
             markMessageAsRead(message.id)
         break
+        
+        case 'withdraw':
+            let amountWithdraw = 0;
+            let userWallet = await getUserWallet(message.author.name.toLowerCase())
 
+            let balanceWithdraw = await getUserBalance(message.author.name)
+            let tokenbalanceWithdraw = balanceWithdraw?.balances?.CANNACOIN || 0
+
+            if (!userWallet.wallet) {
+                replyToMessage(message.id, 'No wallet linked with account. Please run the `link {wallet}` command in order to link your user with a Stellar address. This will automate the withdrawal process.')
+                markMessageAsRead(message.id)
+                return
+            }
+
+            if (message.body.includes(' all ')) {
+                console.log("Replacing 'all' with token balance", tokenbalance)
+                amountWithdraw = tokenbalance
+                message.body = message.body.replace('all', tokenbalance)
+            } else {
+                amountWithdraw = getAmountFromCommand(message.body)
+            }
+
+            if (tokenbalanceWithdraw < amountWithdraw) {
+                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalanceWithdraw} CANNACOIN`)
+                markMessageAsRead(message.id)
+                return
+            }
+
+            console.log("Wallet link found", userWallet.wallet)
+            
+            withdrawToWallet("Withdrawal", amountWithdraw, userWallet.wallet.toUpperCase())
+            .then(async data => {
+                if (data) {
+                    let amount_negative = -Math.abs(amountWithdraw)
+
+                    updateBalance(message.author.name, amount_negative, "CANNACOIN")
+                    replyToMessage(message.id, `We've started the process of moving ${amountWithdraw} CANNACOIN to the wallet ${userWallet.wallet.toUpperCase()}`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
+                markMessageAsRead(message.id)
+            })
+            .catch(error => {
+                replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
+            })
+        break
+        
         case 'leaderboard':
             let leaderboard = await fetchLeaderboard()
             let messageRaw = `## This month's current leaderboard\n  `;
@@ -442,6 +493,13 @@ const executeCommand = async (message) => {
             markMessageAsRead(message.id)
         break
         
+        case 'link':
+            let walletLink = getWalletLinkAddress(message.body.toLowerCase())
+            linkUserWallet(message.author.name.toLowerCase(), walletLink)
+            replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink}`)
+            markMessageAsRead(message.id)
+        break
+
         case 'help':
             replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
             markMessageAsRead(message.id)
@@ -536,6 +594,7 @@ const setUserFlair = (user, flair) => {
 
 module.exports = {
     getWalletAddress,
+    getWalletLinkAddress,
     getAmountFromCommand,
     getComments,
     // getPostComments,
