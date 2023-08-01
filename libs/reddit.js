@@ -311,231 +311,232 @@ const executeCommand = async (message) => {
     try {
 
     
-    switch(botCommand) {
-        case 'balance':
-            let { balances } = await getUserBalance(message.author.name)
+        switch(botCommand) {
+            case 'balance':
+                let { balances } = await getUserBalance(message.author.name)
 
-            let { score } = await getUserKarma(message.author.name)
-            let redditBalance = balances?.CANNACOIN
-            if (!balances || !balances.CANNACOIN) {
-                redditBalance = "0"
-            }
-            setTimeout(() => {
-                replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
-                markMessageAsRead(message.id)
-            }, 5000)
-        break
+                let { score } = await getUserKarma(message.author.name)
+                let redditBalance = balances?.CANNACOIN
+                if (!balances || !balances.CANNACOIN) {
+                    redditBalance = "0"
+                }
+                setTimeout(() => {
+                    replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
+                    markMessageAsRead(message.id)
+                }, 5000)
+            break
 
-        case 'send':
-            let amount = 0;
+            case 'send':
+                let amount = 0;
 
-            let balance = await getUserBalance(message.author.name)
-            let tokenbalance = balance?.balances?.CANNACOIN || 0
+                let balance = await getUserBalance(message.author.name)
+                let tokenbalance = balance?.balances?.CANNACOIN || 0
 
-            if (message.body.includes(' all ')) {
-                console.log("Replacing 'all' with token balance", tokenbalance)
-                amount = tokenbalance
-                message.body = message.body.replace('all', tokenbalance)
-            } else {
-                amount = getAmountFromCommand(message.body)
-            }
+                if (message.body.includes(' all ')) {
+                    console.log("Replacing 'all' with token balance", tokenbalance)
+                    amount = tokenbalance
+                    message.body = message.body.replace('all', tokenbalance)
+                } else {
+                    amount = getAmountFromCommand(message.body)
+                }
 
-            let wallet = getWalletAddress(message.body.toLowerCase())
+                let wallet = getWalletAddress(message.body.toLowerCase())
 
-            
+                
 
-            if (tokenbalance < amount) {
-                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
-                markMessageAsRead(message.id)
-                return
-            }
-
-            console.log("body: ", message.body)
-            console.log("amount: ", amount)
-            console.log("wallet: ", wallet)
-
-            if (!wallet || wallet == null) {
-                replyToMessage(message.id, `Something went wrong, invalid user or wallet address. If you're sending to a user, use :'u/username'`)
-                markMessageAsRead(message.id)
-                return
-            }
-            if (wallet.includes('u/')) {
-                if (message.author.name == wallet.split('u/')[1]) {
-                    replyToMessage(message.id, 'You cannot send a tip to yourself')
+                if (tokenbalance < amount) {
+                    replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
+                    markMessageAsRead(message.id)
                     return
                 }
-                try {
-                    let { balances } = await getUserBalance(message.author.name)
-                    if (balances.CANNACOIN < amount) {
-                        replyToMessage(message.id, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
+
+                console.log("body: ", message.body)
+                console.log("amount: ", amount)
+                console.log("wallet: ", wallet)
+
+                if (!wallet || wallet == null) {
+                    replyToMessage(message.id, `Something went wrong, invalid user or wallet address. If you're sending to a user, use :'u/username'`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                if (wallet.includes('u/')) {
+                    if (message.author.name == wallet.split('u/')[1]) {
+                        replyToMessage(message.id, 'You cannot send a tip to yourself')
+                        return
+                    }
+                    try {
+                        let { balances } = await getUserBalance(message.author.name)
+                        if (balances.CANNACOIN < amount) {
+                            replyToMessage(message.id, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
+                            markMessageAsRead(message.id)
+                            return
+                        }
+                    } catch (error) {
+                        replyToMessage(message.id, `Not enough funds. \n  User not found`)
                         markMessageAsRead(message.id)
                         return
                     }
-                } catch (error) {
-                    replyToMessage(message.id, `Not enough funds. \n  User not found`)
+                    
+                    let balanceA = await getUserBalance(message.author.name)
+                    let balanceB = await getUserBalance(wallet.split('u/')[1])
+
+                    if (!balanceA?.balances?.CANNACOIN || amount > balanceA?.balances?.CANNACOIN ) {
+                        replyToMessage(message.id, `Not enough funds. \n  User not found`)
+                        return
+                    }
+
+                    let tipResponse = await tipUser(message.author.name, wallet.split('u/')[1], parseFloat(amount), "CANNACOIN")
+
+                    if (!tipResponse.upsertedCount) {
+                        replyToMessage(message.id, `Sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)
+                        createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                        markMessageAsRead(message.id)
+                        return
+                    }
+                    replyToMessage(message.id, `Creating a new account and sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)
+                    createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${amount}`)
                     markMessageAsRead(message.id)
                     return
+                }
+
+                if (process.env.ENABLE_WITHDRAWALS == 0) {
+                    return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
                 }
                 
-                let balanceA = await getUserBalance(message.author.name)
-                let balanceB = await getUserBalance(wallet.split('u/')[1])
+                withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
+                .then(async data => {
+                    if (data) {
+                        let amount_negative = -Math.abs(amount)
 
-                if (!balanceA?.balances?.CANNACOIN || amount > balanceA?.balances?.CANNACOIN ) {
-                    replyToMessage(message.id, `Not enough funds. \n  User not found`)
-                    return
-                }
+                        updateBalance(message.author.name, amount_negative, "CANNACOIN")
+                        replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
+                        markMessageAsRead(message.id)
 
-                let tipResponse = await tipUser(message.author.name, wallet.split('u/')[1], parseFloat(amount), "CANNACOIN")
+                        /**
+                         * Uncomment to update user flair with balance
+                         */
 
-                if (!tipResponse.upsertedCount) {
-                    replyToMessage(message.id, `Sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)
-                    createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                        /**
+                         * let balanceA = await getUserBalance(message.author.name)
+                         * setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
+                         */
+                        
+                        return
+                    }
+                    replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
                     markMessageAsRead(message.id)
-                    return
-                }
-                replyToMessage(message.id, `Creating a new account and sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)
-                createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${amount}`)
-                markMessageAsRead(message.id)
-                return
-            }
-
-            if (process.env.ENABLE_WITHDRAWALS == 0) {
-                return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
-            }
+                })
+                .catch(error => {
+                    replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
+                })
+            break
             
-            withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
-            .then(async data => {
-                if (data) {
-                    let amount_negative = -Math.abs(amount)
-
-                    updateBalance(message.author.name, amount_negative, "CANNACOIN")
-                    replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
-                    markMessageAsRead(message.id)
-
-                    /**
-                     * Uncomment to update user flair with balance
-                     */
-
-                    /**
-                     * let balanceA = await getUserBalance(message.author.name)
-                     * setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                     */
-                    
-                    return
-                }
-                replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
+            case 'deposit':
+                replyToMessage(message.id, `Send the desired amount to the address `+'`'+`${process.env.WALLET_PUBLIC}`+'`'+` using the memo `+'`'+`${message.author.name.toLowerCase()}`+'`')
                 markMessageAsRead(message.id)
-            })
-            .catch(error => {
-                replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
-            })
-        break
-        
-        case 'deposit':
-            replyToMessage(message.id, `Send the desired amount to the address `+'`'+`${process.env.WALLET_PUBLIC}`+'`'+` using the memo `+'`'+`${message.author.name.toLowerCase()}`+'`')
-            markMessageAsRead(message.id)
-        break
-        
-        case 'withdraw':
-            let amountWithdraw = 0;
-            let userWallet = await getUserWallet(message.author.name.toLowerCase())
-
-            let balanceWithdraw = await getUserBalance(message.author.name)
-            let tokenbalanceWithdraw = balanceWithdraw?.balances?.CANNACOIN || 0
-
-            if (!userWallet.wallet) {
-                replyToMessage(message.id, 'No wallet linked with account. Please run the `link {wallet}` command in order to link your user with a Stellar address. This will automate the withdrawal process.')
-                markMessageAsRead(message.id)
-                return
-            }
-
-            if (message.body.includes(' all ')) {
-                console.log("Replacing 'all' with token balance", tokenbalance)
-                amountWithdraw = tokenbalance
-                message.body = message.body.replace('all', tokenbalance)
-            } else {
-                amountWithdraw = getAmountFromCommand(message.body)
-            }
-
-            if (tokenbalanceWithdraw < amountWithdraw) {
-                replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalanceWithdraw} CANNACOIN`)
-                markMessageAsRead(message.id)
-                return
-            }
-
-            console.log("Wallet link found", userWallet.wallet)
-
-            if (process.env.ENABLE_WITHDRAWALS == 0) {
-                return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
-            }
+            break
             
-            withdrawToWallet("Withdrawal", amountWithdraw, userWallet.wallet.toUpperCase())
-            .then(async data => {
-                if (data) {
-                    let amount_negative = -Math.abs(amountWithdraw)
+            case 'withdraw':
+                let amountWithdraw = 0;
+                let userWallet = await getUserWallet(message.author.name.toLowerCase())
 
-                    updateBalance(message.author.name, amount_negative, "CANNACOIN")
-                    replyToMessage(message.id, `We've started the process of moving ${amountWithdraw} CANNACOIN to the wallet ${userWallet.wallet.toUpperCase()}`)
+                let balanceWithdraw = await getUserBalance(message.author.name)
+                let tokenbalanceWithdraw = balanceWithdraw?.balances?.CANNACOIN || 0
+
+                if (!userWallet.wallet) {
+                    replyToMessage(message.id, 'No wallet linked with account. Please run the `link {wallet}` command in order to link your user with a Stellar address. This will automate the withdrawal process.')
                     markMessageAsRead(message.id)
                     return
                 }
-                replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
-                markMessageAsRead(message.id)
-            })
-            .catch(error => {
-                replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
-            })
-        break
-        
-        case 'leaderboard':
-            let leaderboard = await fetchLeaderboard()
-            let messageRaw = `## This month's current leaderboard\n  `;
-            await Promise.all(leaderboard.map((user, index) => {
-                messageRaw += `${index+1}. u/${user._id} __[${user.score}]__ Karma earned  \n\n  `
-            }))
-            replyToMessage(message.id, messageRaw)
-            markMessageAsRead(message.id)
-        break
-        
-        case 'link':
-            let walletLink = getWalletLinkAddress(message.body.toLowerCase())
-            if (!walletLink) {
-                replyToMessage(message.id,  `Invalid address provided. Please try again`)
-                markMessageAsRead(message.id)
-                return
-            }
-            linkUserWallet(message.author.name.toLowerCase(), walletLink.toUpperCase())
-            replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink.toUpperCase()}`)
-            markMessageAsRead(message.id)
-        break
 
-        case 'help':
-            replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
-            markMessageAsRead(message.id)
-        break
-        
-        case 'optin':
-            updateOptIn(message.author.name, 1)
-            replyToMessage(message.id,  `You have __opted in__ to tipbot notifications`)
-        break
-        case 'optout':
-            updateOptIn(message.author.name, 0)
-            replyToMessage(message.id,  `You have __opted out__ to tipbot notifications`)
+                if (message.body.includes(' all ')) {
+                    console.log("Replacing 'all' with token balance", tokenbalance)
+                    amountWithdraw = tokenbalance
+                    message.body = message.body.replace('all', tokenbalance)
+                } else {
+                    amountWithdraw = getAmountFromCommand(message.body)
+                }
 
-        break
-        case 'stats':
-            let stats = await showDataset()
-            replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: **${stats.total_karma}**\n\n- Number of contributors: **${stats.total_users}**\n\n- Each karma is worth: **${stats.payout_per_karma}**`)
-        break
-        default:
-            replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
-            markMessageAsRead(message.id)
-        break
-    }
-    return true
+                if (tokenbalanceWithdraw < amountWithdraw) {
+                    replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalanceWithdraw} CANNACOIN`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+
+                console.log("Wallet link found", userWallet.wallet)
+
+                if (process.env.ENABLE_WITHDRAWALS == 0) {
+                    return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+                }
+                
+                withdrawToWallet("Withdrawal", amountWithdraw, userWallet.wallet.toUpperCase())
+                .then(async data => {
+                    if (data) {
+                        let amount_negative = -Math.abs(amountWithdraw)
+
+                        updateBalance(message.author.name, amount_negative, "CANNACOIN")
+                        replyToMessage(message.id, `We've started the process of moving ${amountWithdraw} CANNACOIN to the wallet ${userWallet.wallet.toUpperCase()}`)
+                        markMessageAsRead(message.id)
+                        return
+                    }
+                    replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
+                    markMessageAsRead(message.id)
+                })
+                .catch(error => {
+                    replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
+                })
+            break
+            
+            case 'leaderboard':
+                let leaderboard = await fetchLeaderboard()
+                let messageRaw = `## This month's current leaderboard\n  `;
+                await Promise.all(leaderboard.map((user, index) => {
+                    messageRaw += `${index+1}. u/${user._id} __[${user.score}]__ Karma earned  \n\n  `
+                }))
+                replyToMessage(message.id, messageRaw)
+                markMessageAsRead(message.id)
+            break
+            
+            case 'link':
+                let walletLink = getWalletLinkAddress(message.body.toLowerCase())
+                if (!walletLink) {
+                    replyToMessage(message.id,  `Invalid address provided. Please try again`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                linkUserWallet(message.author.name.toLowerCase(), walletLink.toUpperCase())
+                replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink.toUpperCase()}`)
+                markMessageAsRead(message.id)
+            break
+
+            case 'help':
+                replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+                markMessageAsRead(message.id)
+            break
+            
+            case 'optin':
+                updateOptIn(message.author.name, 1)
+                replyToMessage(message.id,  `You have __opted in__ to tipbot notifications`)
+                markMessageAsRead(message.id)
+            break
+            case 'optout':
+                updateOptIn(message.author.name, 0)
+                replyToMessage(message.id,  `You have __opted out__ to tipbot notifications`)
+            break
+            case 'stats':
+                let stats = await showDataset()
+                replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: **${stats.total_karma}**\n\n- Number of contributors: **${stats.total_users}**\n\n- Each karma is worth: **${stats.payout_per_karma}**`)
+                markMessageAsRead(message.id)
+            break
+            default:
+                replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+                markMessageAsRead(message.id)
+            break
+        }
+        return true
+
     } catch (error) {
-        
-        console.log("Case err: ", error)
+        markMessageAsRead(message.id)
         return false
     }
     
