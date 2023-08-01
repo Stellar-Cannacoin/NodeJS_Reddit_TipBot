@@ -15,68 +15,46 @@ const runtimeFile = require(fileName)
 const karmaPayout = async () => {
     return new Promise(async (resolve, reject) => {
         logger("Monthly cronjob started")
-
-        let karma_users = await fetchRewardStats() // Fallback: Will be removed
         let { karma } = await fetchRewardPostStatsCron()
-        // let { karma } = await fetchRewardPostStatsMonth()
-        
         let records = await fetchRewardRecords()
-        let records_users = await fetchRewardRecordsUsers() // Fallback: Will be removed
-        let reward = calculateRewardPerUser(karma+karma_users.karma)
+        let reward = calculateRewardPerUser(karma)
 
         /**
-         * Will be removed from next 
-         * push on out
+         * Filter out users without a current score
          */
-        let conrecords = records.concat(records_users)
+        records.filter(user => user.score > 0)
         
-        /**
-         * Swap out 'conrecords' for 'records'
-         */
-        let continueRun = false
-        const payout = await conrecords.map((user, i) => {
+        // let continueRun = false
+        const payout = await records.map((user, i) => {
             return new Promise(resolve => {
                 setTimeout(async () => {
-                    // if (user._id.toLowerCase() == "himbad") {
-                    //     continueRun = true
-                    // }
                     // if (!continueRun) {
                     //     console.log("skipping")
                     //     return
                     // }
-                    console.log("reward:", reward*user.score)
-                    console.log("floor:", Math.floor(reward*user.score))
-                    console.log("valid?:", Math.floor(reward*user.score) < Math.floor(0))
                     
                     if (Math.floor(reward*user.score) <= 0) {
-                        console.log("no canna paid out")
                         return
                     }
-                    return
-                    // console.log("continuing")
-                    // return
+
                     await distributeReward(user._id.toLowerCase(), Math.floor(reward*user.score), 'CANNACOIN')
                     try {
                         await createMessage(user._id.toLowerCase(), 'Karma for CANNA', `You received ${Math.floor(reward*user.score)} CANNACOIN for your karma this month!`)
                     } catch (error) {
-                        console.log("Hit rate limit", user._id.toLowerCase())
+                        logger(`Hit rate limit for user: ${user._id.toLowerCase()}`)
                     }
                     
-                    // await reddit.createDistMessage("Canna_Tips", "Karma distribution", `send ${Math.floor(reward*user.score)} u/${user._id.toLowerCase()}`)
                     logger(`${user._id.toLowerCase()}: Paid out: ${Math.floor(reward*user.score)}`)
                     resolve(true)
-                    // console.log("SKIPPING")
 
                 }, i * 25000)
             })
         })
 
-        return
-
-        // /**
-        //  * Wait for payout Promise
-        //  * in order for the code to run correctly
-        //  */
+        /**
+         * Wait for payout Promise
+         * in order for the code to run correctly
+         */
         Promise.all(payout).then((response) => {
             runtimeFile.count++
             runtimeFile.lastrun = new Date()
@@ -100,8 +78,8 @@ const karmaPayout = async () => {
                  */
                 reddit.createSubmission(
                     `Monthly CANNACOIN distribution 💚 💨`,
-                    `- Total karma: __${(karma+karma_users.karma)}__\n\n`+
-                    `- Total payout: __${(karma+karma_users.karma)*reward}__\n\n`+
+                    `- Total karma: __${karma}__\n\n`+
+                    `- Total payout: __${(karma)*reward}__\n\n`+
                     `- Karma ^((CANNACOIN)^): __${reward}__ \n\n`+
                     `- Tipped __${records.length}__ users this month\n\n`+
                     `Our monthly CANNACOIN distribution have taken place, puff puff fam! `+

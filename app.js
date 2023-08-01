@@ -15,7 +15,6 @@ logger('Tipbot is starting')
 /**
  * Collect user's karma every 24 hours
  */
-// cron.schedule('59 23 * * *', async () => {
 cron.schedule('30 * * * *', async () => {
     logger("Collecting karma")
     collectKarma()
@@ -27,6 +26,12 @@ logger('Daily CRON scheduled')
  */
 cron.schedule('0 12 1 * *', async () => {
     karmaPayout()
+    .then(result => {
+        logger('Completed payout')
+    })
+    .catch(error => {
+        logger(error)
+    })
 })
 logger('Monthly CRON scheduled')
 
