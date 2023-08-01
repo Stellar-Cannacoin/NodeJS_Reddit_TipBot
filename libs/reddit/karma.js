@@ -1,6 +1,6 @@
 require('dotenv').config()
 const { fetchRewardPostStats, fetchRewardRecordsCurrent } = require('../db')
-const { calculateRewardPerUser } = require('../reward')
+const { calculateRewardPerUser, getTotalPayoutReward } = require('../reward')
 
 const showDataset = async () => {
     return new Promise(async resolve => {
@@ -12,7 +12,7 @@ const showDataset = async () => {
             total_karma: (karma),
             total_users: records.length,
             payout_per_karma: reward,
-            total_payout: parseFloat((karma)*reward).toFixed(7)
+            total_payout: getTotalPayoutReward() //parseFloat((karma)*reward).toFixed(7)
         }
        
         resolve(payload)
