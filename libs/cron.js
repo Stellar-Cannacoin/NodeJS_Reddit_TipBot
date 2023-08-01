@@ -44,10 +44,15 @@ const karmaPayout = async () => {
                     //     console.log("skipping")
                     //     return
                     // }
+                    console.log("reward:", reward*user.score)
+                    console.log("floor:", Math.floor(reward*user.score))
+                    console.log("valid?:", Math.floor(reward*user.score) < Math.floor(0))
+                    
                     if (Math.floor(reward*user.score) <= 0) {
                         console.log("no canna paid out")
                         return
                     }
+                    return
                     // console.log("continuing")
                     // return
                     await distributeReward(user._id.toLowerCase(), Math.floor(reward*user.score), 'CANNACOIN')
@@ -65,6 +70,8 @@ const karmaPayout = async () => {
                 }, i * 25000)
             })
         })
+
+        return
 
         // /**
         //  * Wait for payout Promise
