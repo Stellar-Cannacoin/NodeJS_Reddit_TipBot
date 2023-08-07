@@ -292,7 +292,7 @@ const getBotCommandFull = (string) => {
 }
 
 const executeCommand = async (message) => {
-    if (message.author.name == "Canna_Tips") {
+    if (message.author.name == process.env.REDDIT_USERNAME) {
         markMessageAsRead(message.id)
         return false
     }
@@ -300,7 +300,7 @@ const executeCommand = async (message) => {
         return false
     }
     let botCommandRaw = getBotCommand(message.body)
-    
+
     message.body = message.body.replace(/(\r\n|\n|\r)/gm, "")
 
     if (!botCommandRaw) {
