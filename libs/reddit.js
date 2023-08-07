@@ -308,6 +308,9 @@ const executeCommand = async (message) => {
     }
 
     let botCommand = botCommandRaw.toLowerCase()
+
+    console.log("user:", message.author.name)
+    console.log("body: ", message.body)
     try {
 
     
@@ -344,13 +347,11 @@ const executeCommand = async (message) => {
 
                 
 
-                if (tokenbalance < amount) {
+                if (parseFloat(tokenbalance) < parseFloat(amount)) {
                     replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
                     markMessageAsRead(message.id)
                     return
                 }
-
-                console.log("body: ", message.body)
                 console.log("amount: ", amount)
                 console.log("wallet: ", wallet)
 
@@ -399,9 +400,9 @@ const executeCommand = async (message) => {
                     return
                 }
 
-                if (process.env.ENABLE_WITHDRAWALS == 0) {
-                    return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
-                }
+                // if (process.env.ENABLE_WITHDRAWALS == 0) {
+                //     return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+                // }
                 
                 withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
                 .then(async data => {
