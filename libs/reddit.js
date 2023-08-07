@@ -300,6 +300,8 @@ const executeCommand = async (message) => {
         return false
     }
     let botCommandRaw = getBotCommand(message.body)
+    
+    message.body = message.body.replace(/(\r\n|\n|\r)/gm, "")
 
     if (!botCommandRaw) {
         replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
