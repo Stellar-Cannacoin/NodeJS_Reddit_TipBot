@@ -4,7 +4,7 @@ const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
 const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
-const { logger } = require('./util')
+const { logger, isNegative } = require('./util')
 
 const r = new Snoowrap({
 	userAgent: process.env.USER_AGENT,
@@ -137,7 +137,7 @@ stream.on("item", async comment => {
                 try {
                     let { balances } = await getUserBalance(comment.author.name)
                     let tokenbalance = balances?.CANNACOIN || 0
-                    if (tokenbalance < getTipAmountComment) {
+                    if (parseFloat(tokenbalance) < parseFloat(getTipAmountComment) || isNegative(parseFloat(tokenbalance))) {
                         logger("Error. Not enough funds")
                         createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
                         return
@@ -341,6 +341,10 @@ const executeCommand = async (message) => {
                     console.log("Replacing 'all' with token balance", tokenbalance)
                     amount = tokenbalance
                     message.body = message.body.replace('all', tokenbalance)
+
+                    if (isNegative(tokenbalance)) {
+                        updateBalance(message.author.name, 0, "CANNACOIN")
+                    }
                 } else {
                     amount = getAmountFromCommand(message.body)
                 }
@@ -456,11 +460,14 @@ const executeCommand = async (message) => {
                     console.log("Replacing 'all' with token balance", tokenbalance)
                     amountWithdraw = tokenbalance
                     message.body = message.body.replace('all', tokenbalance)
+                    if (isNegative(tokenbalanceWithdraw)) {
+                        updateBalance(message.author.name, 0, "CANNACOIN")
+                    }
                 } else {
                     amountWithdraw = getAmountFromCommand(message.body)
                 }
 
-                if (tokenbalanceWithdraw < amountWithdraw) {
+                if (parseFloat(tokenbalanceWithdraw) < parseFloat(amountWithdraw)) {
                     replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalanceWithdraw} CANNACOIN`)
                     markMessageAsRead(message.id)
                     return

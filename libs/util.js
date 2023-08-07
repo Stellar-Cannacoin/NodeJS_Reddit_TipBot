@@ -5,6 +5,16 @@ const logger = (message) => {
     return message
 }
 
+/**
+ * 
+ * @param {Double} n Number
+ * @returns Boolean (true/false)
+ */
+const isNegative = (n) => {
+    return n < 0;
+}
+
 module.exports = {
-    logger
+    logger,
+    isNegative
 }
