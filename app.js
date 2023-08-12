@@ -51,18 +51,18 @@ logger('Funds management service running')
 /**
  * Set user flairs every 4th hour
  */
-cron.schedule('0 */4 * * *', async () => {
-    let records = await fetchRewardRecords()
-    records.map((record, index) => {
-        setTimeout(function () {
-            let balance = record?.balances?.CANNACOIN
-            if (!balance) {
-                balance = "0"
-            }
-            reddit.setUserFlair(record.user, `:9105: ${balance} CANNACOIN`)
-        }, 1000*index);
-    })
-})
+// cron.schedule('0 */4 * * *', async () => {
+//     let records = await fetchRewardRecords()
+//     records.map((record, index) => {
+//         setTimeout(function () {
+//             let balance = record?.balances?.CANNACOIN
+//             if (!balance) {
+//                 balance = "0"
+//             }
+//             reddit.setUserFlair(record.user, `:9105: ${balance} CANNACOIN`)
+//         }, 1000*index);
+//     })
+// })
 logger('Balance listener running')
 
 /**
