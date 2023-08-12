@@ -40,7 +40,7 @@ Once the application is up and running, the Reddit TipBot will automatically mon
 
 ### Available Commands
 
-- **Tip**: To send a tip to another user, reply to their comment or post with the command `!canna AMOUNT SYMBOL`. Replace `AMOUNT` with the desired number of tokens to be sent and `SYMBOL` with the token symbol (e.g., `CC` for Cannacoins).
+- **Tip**: To send a tip to another user, reply to their comment or post with the command `!canna AMOUNT`. Replace `AMOUNT` with the desired number of tokens.
 
 - **Balance**: To check your current balance, use the command `!balance`.
 
