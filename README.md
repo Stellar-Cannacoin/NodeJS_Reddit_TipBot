@@ -6,6 +6,7 @@ This repository contains a Node.js-based Reddit TipBot designed to facilitate ti
 Take a look at our [Wiki](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) for more info on usage and installation.
 
 ## Features
+[![Node.js CI](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/actions/workflows/node.js.yml/badge.svg)](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/actions/workflows/node.js.yml)
 
 - **Tip Command**: Users can tip each other by replying to a comment or post with a specific command, such as `!canna 100 `, where `100` represents the amount.
 - **Balance Inquiry**: Users can check their current balance by using the `balance` command.
