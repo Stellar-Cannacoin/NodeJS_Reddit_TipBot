@@ -48,7 +48,6 @@ Once the application is up and running, the Reddit TipBot will automatically mon
 
 - **Withdraw**: To withdraw your tokens to an external wallet address, use the command `!send AMOUNT ADDRESS`. Replace `ADDRESS` with the recipient's wallet address, `AMOUNT` with the number of tokens to be withdrawn.
 
-- **Transaction History**: To view your transaction history, use the command `!history`. The bot will reply with your most recent transactions, including tips received and sent.
 
 ## Contributing
 
