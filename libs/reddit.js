@@ -186,45 +186,6 @@ stream.on("item", async comment => {
                 }, 1000)
                 updateOptIn(parentComment.author.name, 1)
             break
-            case '!canna2Old': 
-                logger("Got mirror tip")
-                let getTipAmountCommentMirror = getTipAmount(comment.body)
-                if (!getTipAmount) {
-                    return
-                }
-                try {
-                    let { balances } = await getUserBalance(comment.author.name)
-                    let tokenbalance = balances?.CANNACOIN || 0
-                    if (tokenbalance < getTipAmountCommentMirror) {
-                        logger("Error. Not enough funds")
-                        createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
-                        return
-                    }
-                } catch (error) {
-                    logger("Error. Not enough funds")
-                    createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
-                    return
-                }
-
-                if (comment.author.name == parentComment.author.name) {
-                    return
-                }
-
-                let tipResponseMirror = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountCommentMirror), "CANNACOIN")
-                
-                botLogger({
-                    type: "tip",
-                    from: comment.author.name,
-                    to: parentComment.author.name,
-                    amount: getTipAmountCommentMirror,
-                    ts: new Date()
-                })
-                if (tipResponseMirror.upsertedCount) {
-                    updateOptIn(parentComment.author.name, 1)
-                }
-            break
-            default: 
-            break
         }
     });
     return
@@ -251,9 +212,7 @@ const getTipAmount = (string) => {
     return string.match(regex)[1]
 }
 const getWalletAddress = (string) => {
-    // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
     let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
-    // let regex = /link ([A-Za-z]+([0-9]+[A-Za-z]+)+)|send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
     if (!string.match(regex)) {
         return false
     }
@@ -328,7 +287,9 @@ const executeCommand = async (message) => {
                 setTimeout(() => {
                     replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
                     markMessageAsRead(message.id)
-                }, 5000)
+                }, 2000)
+                let user = await getUserBalance(message.author.name)
+                checkFlairUpdate(user)
             break
 
             case 'send':
@@ -609,21 +570,47 @@ const replyToMessage = (id, text) => {
     return rInbox.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/YeTRYV6nUv) | [`GitHub`](https://github.com/stellar-Cannacoin)')
 }
 const setUserFlair = (user, flair) => {
-    r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair})
+    return new Promise(resolve => {
+        resolve(r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair}))
+    })
 }
+
+const checkFlairUpdate = (user) => {
+    return new Promise(async (resolve, reject) => {
+        console.log("user", user)
+        let dbuser = await getUserBalance(user)
+
+        if (!dbuser.flair) {
+            reject(false)
+        }
+
+        switch (dbuser.flair_type) {
+            case 'karma': 
+                let karma = await getUserKarma(user)
+                setUserFlair(user, `:karma_logo: ${karma.score} KARMA`)
+                resolve(true)
+            break
+
+            default: 
+                
+                setUserFlair(user, `:scc_logo: ${(dbuser.balances.CANNACOIN).toFixed(2)} CANNACOIN`)
+                resolve(true)
+            break
+        }
+    })
+}
+
 
 module.exports = {
     getWalletAddress,
     getWalletLinkAddress,
     getAmountFromCommand,
     getComments,
-    // getPostComments,
     getTipAmount,
     getBotCommand,
     getBotCommandFull,
     executeCommand,
     createSubmission,
-    // createMessage,
     createDistMessage,
     createComment,
     getInbox,

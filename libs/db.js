@@ -45,22 +45,6 @@ const resetScore = () => {
     })
 }
 
-const fetchRewardRecordsBack = async () => {
-    return new Promise(async resolve => {
-        await client.connect();
-        const db = client.db(database)
-        const collection = db.collection('post_logs')
-        const results = await collection.aggregate([
-            {$group: {
-                _id: "$user",
-                score: {$sum: "$score"}
-            }}
-            // Needs to add a filter on date, so it will only capture the previuous month's logs
-            // Or we can simply just remove the data in the database EOM
-        ]).toArray()
-        resolve(results)
-    })
-}
 const fetchRewardRecords = async (start, end) => {
     return new Promise(async resolve => {
         await client.connect();
@@ -196,15 +180,10 @@ const getUserWallet = async (user) => {
 }
 const linkUserWallet = async (user, wallet) => {
     return new Promise(async resolve => {
-
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
         const results = await collection.updateOne({user: user}, {$set: {wallet: wallet}})
-        
-        // if (!results) {
-        //     return resolve({message: "No user found"})
-        // }
 
         return resolve(results)
         
@@ -440,7 +419,6 @@ module.exports = {
     fetchRewardPostStats,
     fetchRewardPostStatsCron,
     fetchRewardPostStatsMonth,
-    fetchRewardRecordsBack,
     fetchRewardRecordsCurrent,
     fetchLeaderboard,
     fetchLeaderboardAlltime,
