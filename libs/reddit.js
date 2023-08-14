@@ -39,6 +39,7 @@ rFlair.config({ continueAfterRatelimitError: true })
 let subreddits = require('../data/subreddits.json')
 const { showDataset } = require('./reddit/karma')
 const { createMessage } = require('./reddit/inbox')
+const { checkAccountTrust } = require('./stellar')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
@@ -351,15 +352,11 @@ const executeCommand = async (message) => {
 
                 let wallet = getWalletAddress(message.body.toLowerCase())
 
-                
-
                 if (parseFloat(tokenbalance) < parseFloat(amount)) {
                     replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
                     markMessageAsRead(message.id)
                     return
                 }
-                console.log("amount: ", amount)
-                console.log("wallet: ", wallet)
 
                 if (!wallet || wallet == null) {
                     replyToMessage(message.id, `Something went wrong, invalid user or wallet address. If you're sending to a user, use :'u/username'`)
@@ -406,9 +403,11 @@ const executeCommand = async (message) => {
                     return
                 }
 
-                // if (process.env.ENABLE_WITHDRAWALS == 0) {
-                //     return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
-                // }
+                if(!await checkAccountTrust('CANNACOIN', 'GBLJ3223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', wallet.toUpperCase())) {
+                    replyToMessage(message.id, `Please add the trust to your wallet before transfering funds out.`)
+                    markMessageAsRead(message.id)
+                    return
+                }
                 
                 withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
                 .then(async data => {
@@ -477,6 +476,12 @@ const executeCommand = async (message) => {
 
                 if (process.env.ENABLE_WITHDRAWALS == 0) {
                     return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+                }
+
+                if(!await checkAccountTrust('CANNACOIN', 'GBLJ3223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', userWallet.wallet.toUpperCase())) {
+                    replyToMessage(message.id, `Please add the trust to your wallet before transfering funds out.`)
+                    markMessageAsRead(message.id)
+                    return
                 }
                 
                 withdrawToWallet("Withdrawal", amountWithdraw, userWallet.wallet.toUpperCase())
