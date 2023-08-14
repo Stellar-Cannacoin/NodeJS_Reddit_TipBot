@@ -388,6 +388,45 @@ const getUserBalance = (user) => {
     })
 }
 
+/**
+ * 
+ * @param {String} user Reddit username
+ * @returns 
+ */
+const fetchUsers = (user) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.find({flair: true}).toArray()
+        resolve(results)
+    })
+}
+
+/**
+ * Update user preferences for user flair
+ * @param {String} user Reddit username 
+ * @param {Boolean} flair true/false
+ * @param {String} flair_type karma/balance
+ * @param {String} flair_sub Users old flair
+ * @returns 
+ */
+const updateUserFlairStatus = (user, flair, flair_type, flair_sub) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.updateOne({user: user}, {
+            $set: {
+                flair: flair, 
+                flair_type, flair_type, 
+                flair_sub: flair_sub
+            }
+        })
+        resolve(results)
+    })
+}
+
 const botLogger = (document) => {
     return new Promise(async resolve => {
         await client.connect();
@@ -402,6 +441,7 @@ module.exports = {
     storeDailyScore,
     storeMonthlyReward,
     resetScore,
+    fetchUsers,
     fetchRewardRecords,
     fetchRewardRecordsUsers,
     fetchRewardStats,
@@ -422,5 +462,6 @@ module.exports = {
     fetchRewardRecordsCurrent,
     fetchLeaderboard,
     fetchLeaderboardAlltime,
-    updateOptIn
+    updateOptIn,
+    updateUserFlairStatus
 }

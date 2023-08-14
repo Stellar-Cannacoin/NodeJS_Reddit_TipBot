@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet, updateUserFlairStatus } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger, isNegative } = require('./util')
 
@@ -74,7 +74,7 @@ const messageStream = async () => {
         await new Promise.all(inbox.map(async (message, index) => {
             setTimeout(function () {
                 if (message.new) {
-                    if (message.dest != process.env.REDDIT_USERNAME) {
+                    if (message.dest.toLowerCase() != process.env.REDDIT_USERNAME.toLowerCase()) {
                         return
                     }
                     logger(`Received message`)
@@ -234,8 +234,19 @@ const getAmountFromCommand = (string) => {
     }
     return string.match(regex)[0]
 }
+const getFlairParams = (string) => {
+    let regex = /flair ?([A-Za-z]+)* ?([A-Za-z]+)*/i
+    if (!string.match(regex)) {
+        console.log("err", string.match(regex))
+        return false
+    }
+    return {
+        status: string.match(regex)[1],
+        type: string.match(regex)[2]
+    }
+}
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|flair|Flair|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -251,11 +262,12 @@ const getBotCommandFull = (string) => {
 }
 
 const executeCommand = async (message) => {
+    console.log("message", message)
     if (message.author.name == process.env.REDDIT_USERNAME) {
         markMessageAsRead(message.id)
         return false
     }
-    if (message.dest != process.env.REDDIT_USERNAME) {
+    if (message.dest.toLowerCase() != process.env.REDDIT_USERNAME.toLowerCase()) {
         return false
     }
     let botCommandRaw = getBotCommand(message.body)
@@ -273,8 +285,6 @@ const executeCommand = async (message) => {
     console.log("user:", message.author.name)
     console.log("body: ", message.body)
     try {
-
-    
         switch(botCommand) {
             case 'balance':
                 let { balances } = await getUserBalance(message.author.name)
@@ -288,8 +298,7 @@ const executeCommand = async (message) => {
                     replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
                     markMessageAsRead(message.id)
                 }, 2000)
-                let user = await getUserBalance(message.author.name)
-                checkFlairUpdate(user)
+                checkFlairUpdate(message.author.name)
             break
 
             case 'send':
@@ -312,15 +321,11 @@ const executeCommand = async (message) => {
 
                 let wallet = getWalletAddress(message.body.toLowerCase())
 
-                
-
                 if (parseFloat(tokenbalance) < parseFloat(amount)) {
                     replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
                     markMessageAsRead(message.id)
                     return
                 }
-                console.log("amount: ", amount)
-                console.log("wallet: ", wallet)
 
                 if (!wallet || wallet == null) {
                     replyToMessage(message.id, `Something went wrong, invalid user or wallet address. If you're sending to a user, use :'u/username'`)
@@ -367,9 +372,9 @@ const executeCommand = async (message) => {
                     return
                 }
 
-                // if (process.env.ENABLE_WITHDRAWALS == 0) {
-                //     return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
-                // }
+                if (process.env.ENABLE_WITHDRAWALS == 0) {
+                    return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
+                }
                 
                 withdrawToWallet("Withdrawal", amount, wallet.toUpperCase())
                 .then(async data => {
@@ -379,16 +384,6 @@ const executeCommand = async (message) => {
                         updateBalance(message.author.name, amount_negative, "CANNACOIN")
                         replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
                         markMessageAsRead(message.id)
-
-                        /**
-                         * Uncomment to update user flair with balance
-                         */
-
-                        /**
-                         * let balanceA = await getUserBalance(message.author.name)
-                         * setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                         */
-                        
                         return
                     }
                     replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
@@ -479,6 +474,21 @@ const executeCommand = async (message) => {
                 replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink.toUpperCase()}`)
                 markMessageAsRead(message.id)
             break
+            
+            case 'flair':
+                let flair = getFlairParams(message.body.toLowerCase())
+                if (flair.status == 'enable') {
+                    updateUserFlairStatus(message.author.name, true, flair.type, message.subreddit.user_flair_text)
+                    checkFlairUpdate(message.author.name, true)
+                    replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                await checkFlairUpdate(message.author.name, false)
+                updateUserFlairStatus(message.author.name, false, null, null)
+                replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
+                markMessageAsRead(message.id)
+            break
 
             case 'help':
                 replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
@@ -490,15 +500,18 @@ const executeCommand = async (message) => {
                 replyToMessage(message.id,  `You have __opted in__ to tipbot notifications`)
                 markMessageAsRead(message.id)
             break
+            
             case 'optout':
                 updateOptIn(message.author.name, 0)
                 replyToMessage(message.id,  `You have __opted out__ to tipbot notifications`)
             break
+            
             case 'stats':
                 let stats = await showDataset()
                 replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: **${stats.total_karma}**\n\n- Number of contributors: **${stats.total_users}**\n\n- Each karma is worth: **${stats.payout_per_karma}**`)
                 markMessageAsRead(message.id)
             break
+            
             default:
                 replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
                 markMessageAsRead(message.id)
@@ -575,7 +588,12 @@ const setUserFlair = (user, flair) => {
     })
 }
 
-const checkFlairUpdate = (user) => {
+/**
+ * Checks and sets user flair if user has it enabled
+ * @param {String} user Reddit username
+ * @returns Promise
+ */
+const checkFlairUpdate = (user, status) => {
     return new Promise(async (resolve, reject) => {
         console.log("user", user)
         let dbuser = await getUserBalance(user)
@@ -583,7 +601,10 @@ const checkFlairUpdate = (user) => {
         if (!dbuser.flair) {
             reject(false)
         }
-
+        if (!status) {
+            setUserFlair(user, dbuser.flair_sub)
+            return resolve(true)
+        }
         switch (dbuser.flair_type) {
             case 'karma': 
                 let karma = await getUserKarma(user)
@@ -591,9 +612,13 @@ const checkFlairUpdate = (user) => {
                 resolve(true)
             break
 
-            default: 
-                
+            case 'balance': 
                 setUserFlair(user, `:scc_logo: ${(dbuser.balances.CANNACOIN).toFixed(2)} CANNACOIN`)
+                resolve(true)
+            break
+
+            default:
+                setUserFlair(user, dbuser.flair_sub)
                 resolve(true)
             break
         }
@@ -605,6 +630,7 @@ module.exports = {
     getWalletAddress,
     getWalletLinkAddress,
     getAmountFromCommand,
+    getFlairParams,
     getComments,
     getTipAmount,
     getBotCommand,
@@ -617,5 +643,6 @@ module.exports = {
     markMessageAsRead,
     messageStream,
     commentStream,
-    setUserFlair
+    setUserFlair,
+    checkFlairUpdate,
 }
