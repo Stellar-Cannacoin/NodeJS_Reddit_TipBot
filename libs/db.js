@@ -389,7 +389,8 @@ const getUserBalance = (user) => {
 }
 
 /**
- * 
+ * Fetch user accounts with flair enabled
+ * Used for CRON jobs
  * @param {String} user Reddit username
  * @returns 
  */
