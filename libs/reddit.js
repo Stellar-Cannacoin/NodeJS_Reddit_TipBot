@@ -608,14 +608,7 @@ const setUserFlair = (user, flair) => {
  */
 const checkFlairUpdate = (user, status) => {
     return new Promise(async (resolve, reject) => {
-        console.log("user", user)
         let dbuser = await getUserBalance(user)
-        console.log("dbuser", dbuser)
-        console.log("status", status)
-
-        // if (!dbuser.flair) {
-        //     reject(false)
-        // }
         if (!status) {
             setUserFlair(user, '')
             return resolve(true)

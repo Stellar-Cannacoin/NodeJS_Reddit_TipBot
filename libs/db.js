@@ -424,11 +424,6 @@ const updateUserFlairStatus = (user, flair, flair_type, flair_sub) => {
                 flair_sub: flair_sub
             }
         })
-        console.log("db", {
-            flair: flair, 
-            flair_type, flair_type, 
-            flair_sub: flair_sub
-        })
         resolve(results)
     })
 }
