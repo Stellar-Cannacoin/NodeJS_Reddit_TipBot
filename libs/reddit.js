@@ -493,7 +493,7 @@ const executeCommand = async (message) => {
                     await checkFlairUpdate(message.author.name, true)
                     replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
                     markMessageAsRead(message.id)
-                    return
+                    break
                 }
 
                 await checkFlairUpdate(message.author.name, false)
@@ -616,7 +616,7 @@ const checkFlairUpdate = (user, status) => {
         //     reject(false)
         // }
         if (!status) {
-            setUserFlair(user, '')
+            setUserFlair(user, 'Toker 💨')
             return resolve(true)
         }
         switch (dbuser.flair_type) {
