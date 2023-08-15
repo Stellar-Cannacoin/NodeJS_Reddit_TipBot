@@ -612,9 +612,9 @@ const checkFlairUpdate = (user, status) => {
         console.log("dbuser", dbuser)
         console.log("status", dbuser.flair)
 
-        if (!dbuser.flair) {
-            reject(false)
-        }
+        // if (!dbuser.flair) {
+        //     reject(false)
+        // }
         if (!status) {
             setUserFlair(user, '')
             return resolve(true)
