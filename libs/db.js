@@ -45,22 +45,6 @@ const resetScore = () => {
     })
 }
 
-const fetchRewardRecordsBack = async () => {
-    return new Promise(async resolve => {
-        await client.connect();
-        const db = client.db(database)
-        const collection = db.collection('post_logs')
-        const results = await collection.aggregate([
-            {$group: {
-                _id: "$user",
-                score: {$sum: "$score"}
-            }}
-            // Needs to add a filter on date, so it will only capture the previuous month's logs
-            // Or we can simply just remove the data in the database EOM
-        ]).toArray()
-        resolve(results)
-    })
-}
 const fetchRewardRecords = async (start, end) => {
     return new Promise(async resolve => {
         await client.connect();
@@ -196,15 +180,10 @@ const getUserWallet = async (user) => {
 }
 const linkUserWallet = async (user, wallet) => {
     return new Promise(async resolve => {
-
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
         const results = await collection.updateOne({user: user}, {$set: {wallet: wallet}})
-        
-        // if (!results) {
-        //     return resolve({message: "No user found"})
-        // }
 
         return resolve(results)
         
@@ -409,6 +388,46 @@ const getUserBalance = (user) => {
     })
 }
 
+/**
+ * Fetch user accounts with flair enabled
+ * Used for CRON jobs
+ * @param {String} user Reddit username
+ * @returns 
+ */
+const fetchUsers = (user) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.find({flair: true}).toArray()
+        resolve(results)
+    })
+}
+
+/**
+ * Update user preferences for user flair
+ * @param {String} user Reddit username 
+ * @param {Boolean} flair true/false
+ * @param {String} flair_type karma/balance
+ * @param {String} flair_sub Users old flair
+ * @returns 
+ */
+const updateUserFlairStatus = (user, flair, flair_type, flair_sub) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.updateOne({user: user}, {
+            $set: {
+                flair: flair, 
+                flair_type, flair_type, 
+                flair_sub: flair_sub
+            }
+        })
+        resolve(results)
+    })
+}
+
 const botLogger = (document) => {
     return new Promise(async resolve => {
         await client.connect();
@@ -423,6 +442,7 @@ module.exports = {
     storeDailyScore,
     storeMonthlyReward,
     resetScore,
+    fetchUsers,
     fetchRewardRecords,
     fetchRewardRecordsUsers,
     fetchRewardStats,
@@ -440,9 +460,9 @@ module.exports = {
     fetchRewardPostStats,
     fetchRewardPostStatsCron,
     fetchRewardPostStatsMonth,
-    fetchRewardRecordsBack,
     fetchRewardRecordsCurrent,
     fetchLeaderboard,
     fetchLeaderboardAlltime,
-    updateOptIn
+    updateOptIn,
+    updateUserFlairStatus
 }

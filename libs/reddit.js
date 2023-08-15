@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet, updateUserFlairStatus } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger, isNegative } = require('./util')
 
@@ -75,7 +75,7 @@ const messageStream = async () => {
         await new Promise.all(inbox.map(async (message, index) => {
             setTimeout(function () {
                 if (message.new) {
-                    if (message.dest != process.env.REDDIT_USERNAME) {
+                    if (message.dest.toLowerCase() != process.env.REDDIT_USERNAME.toLowerCase()) {
                         return
                     }
                     logger(`Received message`)
@@ -187,45 +187,6 @@ stream.on("item", async comment => {
                 }, 1000)
                 updateOptIn(parentComment.author.name, 1)
             break
-            case '!canna2Old': 
-                logger("Got mirror tip")
-                let getTipAmountCommentMirror = getTipAmount(comment.body)
-                if (!getTipAmount) {
-                    return
-                }
-                try {
-                    let { balances } = await getUserBalance(comment.author.name)
-                    let tokenbalance = balances?.CANNACOIN || 0
-                    if (tokenbalance < getTipAmountCommentMirror) {
-                        logger("Error. Not enough funds")
-                        createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
-                        return
-                    }
-                } catch (error) {
-                    logger("Error. Not enough funds")
-                    createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is **NaN** CANNACOIN`)
-                    return
-                }
-
-                if (comment.author.name == parentComment.author.name) {
-                    return
-                }
-
-                let tipResponseMirror = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountCommentMirror), "CANNACOIN")
-                
-                botLogger({
-                    type: "tip",
-                    from: comment.author.name,
-                    to: parentComment.author.name,
-                    amount: getTipAmountCommentMirror,
-                    ts: new Date()
-                })
-                if (tipResponseMirror.upsertedCount) {
-                    updateOptIn(parentComment.author.name, 1)
-                }
-            break
-            default: 
-            break
         }
     });
     return
@@ -252,9 +213,7 @@ const getTipAmount = (string) => {
     return string.match(regex)[1]
 }
 const getWalletAddress = (string) => {
-    // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
     let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
-    // let regex = /link ([A-Za-z]+([0-9]+[A-Za-z]+)+)|send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
     if (!string.match(regex)) {
         return false
     }
@@ -276,8 +235,19 @@ const getAmountFromCommand = (string) => {
     }
     return string.match(regex)[0]
 }
+const getFlairParams = (string) => {
+    let regex = /flair ?([A-Za-z]+)* ?([A-Za-z]+)*/i
+    if (!string.match(regex)) {
+        console.log("err", string.match(regex))
+        return false
+    }
+    return {
+        status: string.match(regex)[1],
+        type: string.match(regex)[2]
+    }
+}
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
+    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|flair|Flair|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -293,11 +263,12 @@ const getBotCommandFull = (string) => {
 }
 
 const executeCommand = async (message) => {
+    console.log("message", message)
     if (message.author.name == process.env.REDDIT_USERNAME) {
         markMessageAsRead(message.id)
         return false
     }
-    if (message.dest != process.env.REDDIT_USERNAME) {
+    if (message.dest.toLowerCase() != process.env.REDDIT_USERNAME.toLowerCase()) {
         return false
     }
     let botCommandRaw = getBotCommand(message.body)
@@ -315,8 +286,6 @@ const executeCommand = async (message) => {
     console.log("user:", message.author.name)
     console.log("body: ", message.body)
     try {
-
-    
         switch(botCommand) {
             case 'balance':
                 let { balances } = await getUserBalance(message.author.name)
@@ -329,7 +298,8 @@ const executeCommand = async (message) => {
                 setTimeout(() => {
                     replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
                     markMessageAsRead(message.id)
-                }, 5000)
+                }, 2000)
+                checkFlairUpdate(message.author.name)
             break
 
             case 'send':
@@ -417,16 +387,6 @@ const executeCommand = async (message) => {
                         updateBalance(message.author.name, amount_negative, "CANNACOIN")
                         replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
                         markMessageAsRead(message.id)
-
-                        /**
-                         * Uncomment to update user flair with balance
-                         */
-
-                        /**
-                         * let balanceA = await getUserBalance(message.author.name)
-                         * setUserFlair(message.author.name, `🪙 ${balanceA.balances.CANNACOIN} CANNACOIN`)
-                         */
-                        
                         return
                     }
                     replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
@@ -523,6 +483,21 @@ const executeCommand = async (message) => {
                 replyToMessage(message.id,  `Successfully linked user account with the wallet: ${walletLink.toUpperCase()}`)
                 markMessageAsRead(message.id)
             break
+            
+            case 'flair':
+                let flair = getFlairParams(message.body.toLowerCase())
+                if (flair.status == 'enable') {
+                    updateUserFlairStatus(message.author.name, true, flair.type, message.subreddit.user_flair_text)
+                    checkFlairUpdate(message.author.name, true)
+                    replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
+                    markMessageAsRead(message.id)
+                    return
+                }
+                await checkFlairUpdate(message.author.name, false)
+                updateUserFlairStatus(message.author.name, false, null, null)
+                replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
+                markMessageAsRead(message.id)
+            break
 
             case 'help':
                 replyToMessage(message.id,  `**Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)\n- leaderboard (this months karma leaders)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
@@ -534,15 +509,18 @@ const executeCommand = async (message) => {
                 replyToMessage(message.id,  `You have __opted in__ to tipbot notifications`)
                 markMessageAsRead(message.id)
             break
+            
             case 'optout':
                 updateOptIn(message.author.name, 0)
                 replyToMessage(message.id,  `You have __opted out__ to tipbot notifications`)
             break
+            
             case 'stats':
                 let stats = await showDataset()
                 replyToMessage(message.id,  `This months current karma statistics are:\n\n- This months total payout: **${stats.total_payout}**\n\n- Total sub karma earned: **${stats.total_karma}**\n\n- Number of contributors: **${stats.total_users}**\n\n- Each karma is worth: **${stats.payout_per_karma}**`)
                 markMessageAsRead(message.id)
             break
+            
             default:
                 replyToMessage(message.id, `**Invalid command**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- send {amount} {u/reddit_user} (send funds to Reddit user)\n- deposit (deposit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
                 markMessageAsRead(message.id)
@@ -614,26 +592,66 @@ const replyToMessage = (id, text) => {
     return rInbox.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/YeTRYV6nUv) | [`GitHub`](https://github.com/stellar-Cannacoin)')
 }
 const setUserFlair = (user, flair) => {
-    r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair})
+    return new Promise(resolve => {
+        resolve(r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair}))
+    })
 }
+
+/**
+ * Checks and sets user flair if user has it enabled
+ * @param {String} user Reddit username
+ * @returns Promise
+ */
+const checkFlairUpdate = (user, status) => {
+    return new Promise(async (resolve, reject) => {
+        console.log("user", user)
+        let dbuser = await getUserBalance(user)
+
+        if (!dbuser.flair) {
+            reject(false)
+        }
+        if (!status) {
+            setUserFlair(user, dbuser.flair_sub)
+            return resolve(true)
+        }
+        switch (dbuser.flair_type) {
+            case 'karma': 
+                let karma = await getUserKarma(user)
+                setUserFlair(user, `:karma_logo: ${karma.score} KARMA`)
+                resolve(true)
+            break
+
+            case 'balance': 
+                setUserFlair(user, `:scc_logo: ${(dbuser.balances.CANNACOIN).toFixed(2)} CANNACOIN`)
+                resolve(true)
+            break
+
+            default:
+                setUserFlair(user, dbuser.flair_sub)
+                resolve(true)
+            break
+        }
+    })
+}
+
 
 module.exports = {
     getWalletAddress,
     getWalletLinkAddress,
     getAmountFromCommand,
+    getFlairParams,
     getComments,
-    // getPostComments,
     getTipAmount,
     getBotCommand,
     getBotCommandFull,
     executeCommand,
     createSubmission,
-    // createMessage,
     createDistMessage,
     createComment,
     getInbox,
     markMessageAsRead,
     messageStream,
     commentStream,
-    setUserFlair
+    setUserFlair,
+    checkFlairUpdate,
 }

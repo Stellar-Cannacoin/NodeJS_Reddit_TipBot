@@ -1,4 +1,4 @@
-const { getBotCommand, getWalletAddress, executeCommand } = require("../libs/reddit");
+const { getBotCommand, getWalletAddress, executeCommand, getFlairParams } = require("../libs/reddit");
 
 test('commandTipUserComment', () => {
     expect(getBotCommand(`!canna 10`)).toBe('!canna');
@@ -30,4 +30,28 @@ test('commandSendGetWallet', () => {
 
 test('commandLeaderboard', () => {
     expect(getBotCommand(`leaderboard`)).toBe('leaderboard');
+});
+
+test('commandSend', () => {
+    expect(getBotCommand('flair enable karma')).toBe('flair');
+});
+
+test('commandSend', () => {
+    let flair = getFlairParams('flair enable karma');
+    expect(flair.status).toBe('enable');
+});
+
+test('commandSend', () => {
+    let flair = getFlairParams('flair enable balance');
+    expect(flair.type).toBe('balance');
+});
+
+test('commandSend', () => {
+    let flair = getFlairParams('flair enable karma');
+    expect(flair.type).toBe('karma');
+});
+
+test('commandSend', () => {
+    let flair = getFlairParams('flair disable');
+    expect(flair.status).toBe('disable');
 });
