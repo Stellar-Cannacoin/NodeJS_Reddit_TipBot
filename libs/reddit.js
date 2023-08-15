@@ -632,7 +632,6 @@ const checkFlairUpdate = (user, status) => {
             break
 
             default:
-                setUserFlair(user, dbuser.flair_sub)
                 resolve(true)
             break
         }
