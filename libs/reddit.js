@@ -610,7 +610,7 @@ const checkFlairUpdate = (user, status) => {
         console.log("user", user)
         let dbuser = await getUserBalance(user)
         console.log("dbuser", dbuser)
-        console.log("status", dbuser.flair)
+        console.log("status", status)
 
         // if (!dbuser.flair) {
         //     reject(false)
