@@ -10,6 +10,7 @@ const { Keypair, TimeoutInfinite, StrKey } = require('stellar-base');
 const stellar = require('stellar-sdk');
 const { updateBalance } = require('./db');
 const { createMessage } = require('./reddit/inbox');
+const axios = require('axios');
 
 const server = new stellar.Server("https://horizon.stellar.org");
 const issuerPair = Keypair.fromSecret(process.env.WALLET_KEY);
@@ -256,6 +257,29 @@ const createDistributionTransactionPayout = (transaction, reward) => {
     })
 }
 
+const checkAccountTrust = (asset_code, asset_issuer, address) => {
+    return new Promise(async resolve => {
+        try {
+            let lookup = await axios.get(`https://horizon.stellar.org/accounts/${address}`)
+            let foundTrust = false;
+            await Promise.all(lookup.data.balances.map(accountBalance => {
+                if (accountBalance.asset_code == asset_code && accountBalance.asset_issuer == asset_issuer) {
+                    foundTrust = true;
+                }
+            }))
+    
+            if (!foundTrust) {
+                return resolve(false)
+            }
+    
+            resolve(true)
+        } catch (error) {
+            resolve(false)
+        }
+        
+    })
+}
+
 module.exports = { 
     startWalletListener,
     depositToWallet,
@@ -265,5 +289,6 @@ module.exports = {
     paymentListener,
     createDistributionTransaction,
     submitDistributionTransaction,
-    createDistributionTransactionPayout
+    createDistributionTransactionPayout,
+    checkAccountTrust
 };
