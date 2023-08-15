@@ -496,8 +496,8 @@ const executeCommand = async (message) => {
                     break
                 }
 
-                await checkFlairUpdate(message.author.name, false)
-                // await updateUserFlairStatus(message.author.name, false, null, null)
+                // await checkFlairUpdate(message.author.name, false)
+                await updateUserFlairStatus(message.author.name, false, null, null)
                 replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
                 markMessageAsRead(message.id)
             break
