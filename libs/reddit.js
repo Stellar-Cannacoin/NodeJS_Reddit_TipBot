@@ -486,13 +486,16 @@ const executeCommand = async (message) => {
             
             case 'flair':
                 let flair = getFlairParams(message.body.toLowerCase())
+                console.log(flair)
+                
                 if (flair.status == 'enable') {
-                    updateUserFlairStatus(message.author.name, true, flair.type, null)
+                    await updateUserFlairStatus(message.author.name, true, flair.type, null)
                     checkFlairUpdate(message.author.name, true)
                     replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
                     markMessageAsRead(message.id)
-                    break
+                    return
                 }
+
                 await checkFlairUpdate(message.author.name, false)
                 updateUserFlairStatus(message.author.name, false, null, null)
                 replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
