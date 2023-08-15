@@ -487,11 +487,11 @@ const executeCommand = async (message) => {
             case 'flair':
                 let flair = getFlairParams(message.body.toLowerCase())
                 if (flair.status == 'enable') {
-                    updateUserFlairStatus(message.author.name, true, flair.type, message.subreddit.user_flair_text)
+                    updateUserFlairStatus(message.author.name, true, flair.type, null)
                     checkFlairUpdate(message.author.name, true)
                     replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
                     markMessageAsRead(message.id)
-                    return
+                    break
                 }
                 await checkFlairUpdate(message.author.name, false)
                 updateUserFlairStatus(message.author.name, false, null, null)
@@ -611,7 +611,7 @@ const checkFlairUpdate = (user, status) => {
             reject(false)
         }
         if (!status) {
-            setUserFlair(user, dbuser.flair_sub)
+            setUserFlair(user, '')
             return resolve(true)
         }
         switch (dbuser.flair_type) {
