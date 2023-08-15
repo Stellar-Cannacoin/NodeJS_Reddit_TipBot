@@ -263,7 +263,6 @@ const getBotCommandFull = (string) => {
 }
 
 const executeCommand = async (message) => {
-    console.log("message", message)
     if (message.author.name == process.env.REDDIT_USERNAME) {
         markMessageAsRead(message.id)
         return false
@@ -283,8 +282,6 @@ const executeCommand = async (message) => {
 
     let botCommand = botCommandRaw.toLowerCase()
 
-    console.log("user:", message.author.name)
-    console.log("body: ", message.body)
     try {
         switch(botCommand) {
             case 'balance':
@@ -486,7 +483,6 @@ const executeCommand = async (message) => {
             
             case 'flair':
                 let flair = getFlairParams(message.body.toLowerCase())
-                console.log(flair)
                 
                 if (flair.status == 'enable') {
                     await updateUserFlairStatus(message.author.name, true, flair.type, null)
@@ -495,8 +491,6 @@ const executeCommand = async (message) => {
                     markMessageAsRead(message.id)
                     break
                 }
-
-                // await checkFlairUpdate(message.author.name, false)
                 await updateUserFlairStatus(message.author.name, false, null, null)
                 await checkFlairUpdate(message.author.name, false)
                 replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
