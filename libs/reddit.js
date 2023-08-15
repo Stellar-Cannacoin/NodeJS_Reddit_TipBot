@@ -490,14 +490,14 @@ const executeCommand = async (message) => {
                 
                 if (flair.status == 'enable') {
                     await updateUserFlairStatus(message.author.name, true, flair.type, null)
-                    checkFlairUpdate(message.author.name, true)
+                    await checkFlairUpdate(message.author.name, true)
                     replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
                     markMessageAsRead(message.id)
                     return
                 }
 
                 await checkFlairUpdate(message.author.name, false)
-                updateUserFlairStatus(message.author.name, false, null, null)
+                await updateUserFlairStatus(message.author.name, false, null, null)
                 replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
                 markMessageAsRead(message.id)
             break
@@ -609,6 +609,8 @@ const checkFlairUpdate = (user, status) => {
     return new Promise(async (resolve, reject) => {
         console.log("user", user)
         let dbuser = await getUserBalance(user)
+        console.log("dbuser", dbuser)
+        console.log("status", dbuser.flair)
 
         if (!dbuser.flair) {
             reject(false)
