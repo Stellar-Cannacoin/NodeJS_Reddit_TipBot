@@ -299,7 +299,7 @@ const executeCommand = async (message) => {
                     replyToMessage(message.id, `Your current tipbot balance is ${parseFloat(redditBalance).toFixed(2)} CANNACOIN  \n\n You've earned ${score} karma so far this month!`)
                     markMessageAsRead(message.id)
                 }, 2000)
-                checkFlairUpdate(message.author.name)
+                checkFlairUpdate(message.author.name, true)
             break
 
             case 'send':
@@ -616,7 +616,7 @@ const checkFlairUpdate = (user, status) => {
         //     reject(false)
         // }
         if (!status) {
-            setUserFlair(user, 'Toker 💨')
+            setUserFlair(user, '')
             return resolve(true)
         }
         switch (dbuser.flair_type) {

@@ -417,7 +417,7 @@ const updateUserFlairStatus = (user, flair, flair_type, flair_sub) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const results = await collection.updateOne({user: user}, {
+        const results = await collection.updateOne({user: user.toLowerCase()}, {
             $set: {
                 flair: flair, 
                 flair_type, flair_type, 
