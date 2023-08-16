@@ -132,7 +132,8 @@ stream.on("item", async comment => {
         switch (getRedditCommand) {
             case '!canna': 
                 let getTipAmountComment = getTipAmount(comment.body)
-                if (!getTipAmount) {
+                if (!getTipAmountComment) {
+                    createComment(comment, `Invalid command, please see the tipbot help manual if your unsure about the commands used in comments or private messages.`)
                     return
                 }
                 try {

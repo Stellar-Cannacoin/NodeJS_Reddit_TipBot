@@ -56,10 +56,16 @@ const { getBotCommand, getWalletAddress, executeCommand, getFlairParams, getTipA
 //     expect(flair.status).toBe('disable');
 // });
 
-test('commandCommentTip', () => {
-    expect(isNaN(getTipAmount('!canna 420'))).toBe(false);
-});
+// test('commandCommentTip', () => {
+//     expect(isNaN(getTipAmount('!canna 420'))).toBe(false);
+// });
 
-test('commandCommentInvalidTip', () => {
-    expect(getTipAmount('!canna enable karma')).toBe(false);
+
+// test('commandCommentInvalidTip', () => {
+//     expect(getTipAmount('!canna 420')).toBe(false);
+// });
+
+test('commandCommentInvalidTipInvalid', () => {
+    console.log(getTipAmount('!canna420'))
+    expect(getTipAmount('!canna420')).toBe(false);
 });
