@@ -56,7 +56,7 @@ cron.schedule('0 1 * * *', async () => {
     let records = await fetchUsers()
     records.map((record, index) => {
         setTimeout(function () {
-            reddit.checkFlairUpdate(record.user)
+            reddit.checkFlairUpdate(record.user, true)
             .catch(error => {
                 console.log("error setting routine flairs", error)
             })
