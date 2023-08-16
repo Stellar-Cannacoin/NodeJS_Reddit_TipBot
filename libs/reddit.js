@@ -370,8 +370,8 @@ const executeCommand = async (message) => {
                     return
                 }
 
-                if(!await checkAccountTrust('CANNACOIN', 'GBLJ3223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', wallet.toUpperCase())) {
-                    replyToMessage(message.id, `Please add the trust to your wallet before transfering funds out.`)
+                if(!await checkAccountTrust('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', wallet.toUpperCase())) {
+                    replyToMessage(message.id, `Please add the trust to your wallet before transferring funds out.`)
                     markMessageAsRead(message.id)
                     return
                 }
@@ -435,7 +435,7 @@ const executeCommand = async (message) => {
                     return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
                 }
 
-                if(!await checkAccountTrust('CANNACOIN', 'GBLJ3223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', userWallet.wallet.toUpperCase())) {
+                if(!await checkAccountTrust('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', userWallet.wallet.toUpperCase())) {
                     replyToMessage(message.id, `Please add the trust to your wallet before transfering funds out.`)
                     markMessageAsRead(message.id)
                     return

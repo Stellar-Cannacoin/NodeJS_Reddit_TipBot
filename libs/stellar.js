@@ -264,16 +264,18 @@ const checkAccountTrust = (asset_code, asset_issuer, address) => {
             let foundTrust = false;
             await Promise.all(lookup.data.balances.map(accountBalance => {
                 if (accountBalance.asset_code == asset_code && accountBalance.asset_issuer == asset_issuer) {
-                    foundTrust = true;
+                    foundTrust = true
                 }
             }))
     
             if (!foundTrust) {
+                console.log(`trust: ${foundTrust}`)
                 return resolve(false)
             }
     
             resolve(true)
         } catch (error) {
+            console.log(error)
             resolve(false)
         }
         
