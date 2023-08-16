@@ -206,11 +206,16 @@ const getComments = (id) => {
 
 
 const getTipAmount = (string) => {
-    let regex = /!canna2v|!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
-    if (!string.match(regex)) {
+    let regex = /!canna ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))?/
+    try {
+        if (isNaN(string.match(regex)[1])) {
+            return false
+        }
+        return string.match(regex)[1]
+    } catch (error) {
         return false
     }
-    return string.match(regex)[1]
+    
 }
 const getWalletAddress = (string) => {
     let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
@@ -247,7 +252,7 @@ const getFlairParams = (string) => {
     }
 }
 const getBotCommand = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|flair|Flair|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
+    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|flair|Flair|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
@@ -255,7 +260,7 @@ const getBotCommand = (string) => {
 }
 
 const getBotCommandFull = (string) => {
-    let regex = /(!canna2v?|!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
+    let regex = /(!canna?|balance|Balance|send?|Send?|deposit|Deposit|withdraw|Withdraw|link|Link|leaderboard|Leaderboard|help|Help|Optin|optin|Optout|optout|Stats|stats)/
     if (!string.match(regex)) {
         return false
     }
