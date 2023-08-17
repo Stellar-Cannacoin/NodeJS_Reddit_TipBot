@@ -489,15 +489,20 @@ const executeCommand = async (message) => {
             
             case 'flair':
                 let flair = getFlairParams(message.body.toLowerCase())
-                
+
+                let { flair_text } = await getUserFlair(user)
+                if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
+                    backupUserFlair(user, flair_text)
+                }
                 if (flair.status == 'enable') {
-                    await updateUserFlairStatus(message.author.name, true, flair.type, null)
+                    await updateUserFlairStatus(message.author.name, true, flair.type, flair_text)
                     await checkFlairUpdate(message.author.name, true)
                     replyToMessage(message.id,  `You've **enabled** custom flair for you user account. We will show your **${flair.type}** in the flair.`)
                     markMessageAsRead(message.id)
                     break
                 }
-                await updateUserFlairStatus(message.author.name, false, null, null)
+                
+                await updateUserFlairStatus(message.author.name, false, null, flair_text)
                 await checkFlairUpdate(message.author.name, false)
                 replyToMessage(message.id,  `You've **disabled** custom flair for you user account. We will try to return your old flair.`)
                 markMessageAsRead(message.id)
@@ -616,7 +621,7 @@ const checkFlairUpdate = (user, status) => {
         if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
             backupUserFlair(user, flair_text)
         }
-
+        
         switch (dbuser.flair_type) {
             case 'karma': 
                 let karma = await getUserKarma(user)
