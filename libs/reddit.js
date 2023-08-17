@@ -618,10 +618,10 @@ const checkFlairUpdate = (user, status) => {
         }
 
         let { flair_text } = await getUserFlair(user)
-        if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
-            backupUserFlair(user, flair_text)
-        }
-        
+        // if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
+        //     backupUserFlair(user, flair_text)
+        // }
+
         switch (dbuser.flair_type) {
             case 'karma': 
                 let karma = await getUserKarma(user)
@@ -635,6 +635,7 @@ const checkFlairUpdate = (user, status) => {
             break
 
             default:
+                setUserFlair(user, flair_text)
                 resolve(true)
             break
         }
