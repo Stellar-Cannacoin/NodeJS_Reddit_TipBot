@@ -427,6 +427,25 @@ const updateUserFlairStatus = (user, flair, flair_type, flair_sub) => {
         resolve(results)
     })
 }
+/**
+ * 
+ * @param {String} user Reddit username
+ * @param {String} flair Reddit flair to save
+ * @returns 
+ */
+const backupUserFlair = (user, flair) => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.updateOne({user: user.toLowerCase()}, {
+            $set: {
+                flair_sub: flair
+            }
+        })
+        resolve(results)
+    })
+}
 
 const botLogger = (document) => {
     return new Promise(async resolve => {
@@ -464,5 +483,6 @@ module.exports = {
     fetchLeaderboard,
     fetchLeaderboardAlltime,
     updateOptIn,
-    updateUserFlairStatus
+    updateUserFlairStatus,
+    backupUserFlair
 }

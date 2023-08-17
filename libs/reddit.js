@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const { CommentStream, } = require("snoostorm")
 const Snoowrap = require('snoowrap')
-const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet, updateUserFlairStatus } = require('./db')
+const { tipUser, getUserBalance, updateBalance, botLogger, fetchLeaderboard, getUserKarma, updateOptIn, getUserWallet, linkUserWallet, updateUserFlairStatus, backupUserFlair } = require('./db')
 const { withdrawToWallet } = require('./withdraw')
 const { logger, isNegative } = require('./util')
 
@@ -133,7 +133,7 @@ stream.on("item", async comment => {
             case '!canna': 
                 let getTipAmountComment = getTipAmount(comment.body)
                 if (!getTipAmountComment) {
-                    createComment(comment, `Invalid command, please see the tipbot help manual if your unsure about the commands used in comments or private messages.`)
+                    createComment(comment, `Invalid command, please see the tipbot help manual if you're unsure about the commands used in comments or private messages.`)
                     return
                 }
                 try {
@@ -539,22 +539,6 @@ const executeCommand = async (message) => {
     
 }
 
-// const createMessage = (user, title, text) => {
-//     if (!user) {
-//         return
-//     }
-//     try {
-//         return r.composeMessage({
-//             to: user,
-//             subject: title,
-//             text: text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/YeTRYV6nUv) | [`GitHub`](https://github.com/stellar-Cannacoin)'
-//         })
-//     } catch (error) {
-//         return error
-//     }
-   
-// }
-
 const createDistMessage = async (user, title, text) => {
     return new Promise(async resolve => {
         try {
@@ -600,6 +584,20 @@ const setUserFlair = (user, flair) => {
         resolve(r.getUser(user).assignFlair({subredditName: process.env.SUBREDDIT, text: flair}))
     })
 }
+/**
+ * Get user's Subreddit flair, used to store the old one
+ * when a user enables custom flairing
+ * @param {String} user 
+ * @returns 
+ */
+const getUserFlair = (account) => {
+    return new Promise((async resolve => {
+        console.log("account", account)
+        let users = await r.getSubreddit(process.env.SUBREDDIT).getUserFlairList()
+        let filtred = users.filter((user) => user.user.name.toLowerCase() == account.toLowerCase())
+        resolve(filtred[0])
+    }))
+}
 
 /**
  * Checks and sets user flair if user has it enabled
@@ -610,9 +608,15 @@ const checkFlairUpdate = (user, status) => {
     return new Promise(async (resolve, reject) => {
         let dbuser = await getUserBalance(user)
         if (!status) {
-            setUserFlair(user, '')
+            setUserFlair(user, dbuser.flair_sub)
             return resolve(true)
         }
+
+        let { flair_text } = await getUserFlair(user)
+        if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
+            backupUserFlair(user, flair_text)
+        }
+
         switch (dbuser.flair_type) {
             case 'karma': 
                 let karma = await getUserKarma(user)
@@ -638,6 +642,7 @@ module.exports = {
     getWalletLinkAddress,
     getAmountFromCommand,
     getFlairParams,
+    getUserFlair,
     getComments,
     getTipAmount,
     getBotCommand,
