@@ -491,9 +491,9 @@ const executeCommand = async (message) => {
                 let flair = getFlairParams(message.body.toLowerCase())
 
                 let { flair_text } = await getUserFlair(message.author.name)
-                if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
-                    backupUserFlair(message.author.name, flair_text)
-                }
+                // if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
+                //     backupUserFlair(message.author.name, flair_text)
+                // }
                 if (flair.status == 'enable') {
                     await updateUserFlairStatus(message.author.name, true, flair.type, flair_text)
                     await checkFlairUpdate(message.author.name, true)
@@ -600,6 +600,7 @@ const getUserFlair = (account) => {
         console.log("account", account)
         let users = await r.getSubreddit(process.env.SUBREDDIT).getUserFlairList()
         let filtred = users.filter((user) => user.user.name.toLowerCase() == account.toLowerCase())
+        console.log(filtred)
         resolve(filtred[0])
     }))
 }
@@ -617,7 +618,9 @@ const checkFlairUpdate = (user, status) => {
             return resolve(true)
         }
 
-        let { flair_text } = await getUserFlair(user)
+        let { flair_text } = await getUserFlair(user.toLowerCase())
+        let testdata = await getUserFlair(user.toLowerCase())
+        console.log("data received", testdata)
         // if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
         //     backupUserFlair(user, flair_text)
         // }
