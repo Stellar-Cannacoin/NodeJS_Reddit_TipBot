@@ -638,6 +638,23 @@ const checkFlairUpdate = (user, status) => {
                 break
             }
         } catch(error) {
+            switch (dbuser.flair_type) {
+                case 'karma': 
+                    let karma = await getUserKarma(user)
+                    setUserFlair(user, `:karma_logo: ${karma.score} KARMA`)
+                    resolve(true)
+                break
+
+                case 'balance': 
+                    setUserFlair(user, `:scc_logo: ${(dbuser.balances.CANNACOIN).toFixed(2)} CANNACOIN`)
+                    resolve(true)
+                break
+
+                default:
+                    setUserFlair(user, flair_text)
+                    resolve(true)
+                break
+            }
             return
         }
         
