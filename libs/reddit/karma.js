@@ -4,18 +4,22 @@ const { calculateRewardPerUser, getTotalPayoutReward } = require('../reward')
 
 const showDataset = async () => {
     return new Promise(async resolve => {
-        let { karma } = await fetchRewardPostStats()
-        let records = await fetchRewardRecordsCurrent()
-        let reward = calculateRewardPerUser(karma)
+        try {
+            let { karma } = await fetchRewardPostStats()
+            let records = await fetchRewardRecordsCurrent()
+            let reward = calculateRewardPerUser(karma)
 
-        let payload = {
-            total_karma: parseInt(karma),
-            total_users: records.length,
-            payout_per_karma: reward,
-            total_payout: getTotalPayoutReward() //parseFloat((karma)*reward).toFixed(7)
+            let payload = {
+                total_karma: parseInt(karma),
+                total_users: records.length,
+                payout_per_karma: reward,
+                total_payout: getTotalPayoutReward() //parseFloat((karma)*reward).toFixed(7)
+            }
+        
+            resolve(payload)
+        } catch (error) {
+            console.log("error", error)
         }
-       
-        resolve(payload)
     })
 }
 

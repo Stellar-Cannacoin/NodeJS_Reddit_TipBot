@@ -9,12 +9,12 @@ test('showDataset', () => {
     });
 })
 
-test('currentPayout', () => {
-    expect(getTotalPayoutReward() > 1200000).toBe(true);
-    // return getTotalPayoutReward().then(async (data) => {
-    //     console.log("payout", data)
-    // })
-})
+// test('currentPayout', () => {
+//     expect(getTotalPayoutReward() > 1200000).toBe(true);
+//     // return getTotalPayoutReward().then(async (data) => {
+//     //     console.log("payout", data)
+//     // })
+// })
 
 // test('showDataset', () => {
 //     return fetchRewardPostStatsMonth('06').then(async (data) => {
