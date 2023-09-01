@@ -37,10 +37,10 @@ const rFlair = new Snoowrap({
 rFlair.config({ continueAfterRatelimitError: true })
 
 let subreddits = require('../data/subreddits.json')
-// const { showDataset } = require('./reddit/karma')
+const { showDataset } = require('./reddit/karma')
 const { createMessage } = require('./reddit/inbox')
 const { checkAccountTrust } = require('./stellar')
-const { showDataset } = require('./cron')
+
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
