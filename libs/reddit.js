@@ -617,29 +617,30 @@ const checkFlairUpdate = (user, status) => {
             setUserFlair(user, dbuser.flair_sub)
             return resolve(true)
         }
+        try {
+            let { flair_text } = await getUserFlair(user.toLowerCase())
 
-        let { flair_text } = await getUserFlair(user.toLowerCase())
-        // if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
-        //     backupUserFlair(user, flair_text)
-        // }
+            switch (dbuser.flair_type) {
+                case 'karma': 
+                    let karma = await getUserKarma(user)
+                    setUserFlair(user, `:karma_logo: ${karma.score} KARMA`)
+                    resolve(true)
+                break
 
-        switch (dbuser.flair_type) {
-            case 'karma': 
-                let karma = await getUserKarma(user)
-                setUserFlair(user, `:karma_logo: ${karma.score} KARMA`)
-                resolve(true)
-            break
+                case 'balance': 
+                    setUserFlair(user, `:scc_logo: ${(dbuser.balances.CANNACOIN).toFixed(2)} CANNACOIN`)
+                    resolve(true)
+                break
 
-            case 'balance': 
-                setUserFlair(user, `:scc_logo: ${(dbuser.balances.CANNACOIN).toFixed(2)} CANNACOIN`)
-                resolve(true)
-            break
-
-            default:
-                setUserFlair(user, flair_text)
-                resolve(true)
-            break
+                default:
+                    setUserFlair(user, flair_text)
+                    resolve(true)
+                break
+            }
+        } catch(error) {
+            return
         }
+        
     })
 }
 
