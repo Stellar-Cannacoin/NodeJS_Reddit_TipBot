@@ -22,6 +22,13 @@ const showDataset = async () => {
             resolve(payload)
         } catch (error) {
             console.log("error", error)
+            let payload = {
+                total_karma: parseInt(0),
+                total_users: 0,
+                payout_per_karma: 0,
+                total_payout: 0 //parseFloat((karma)*reward).toFixed(7)
+            }
+            resolve(payload)
         }
     })
 }
