@@ -172,9 +172,11 @@ const collectKarma = async () => {
 
 const showDataset = async () => {
     return new Promise(async resolve => {
-        let karmaRes = await fetchRewardPostStats()
-        console.log("KARMA:", karmaRes)
         let { karma } = await fetchRewardPostStats()
+
+        if (!karma) {
+            karma = 0
+        }
         // let { karma } = await fetchRewardPostStatsMonth('06')
         
         // let karma_users = await fetchRewardStats()

@@ -6,6 +6,9 @@ const showDataset = async () => {
     return new Promise(async resolve => {
         try {
             let { karma } = await fetchRewardPostStats()
+            if (!karma) {
+                karma = 0
+            }
             let records = await fetchRewardRecordsCurrent()
             let reward = calculateRewardPerUser(karma)
 

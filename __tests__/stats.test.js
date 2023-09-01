@@ -1,5 +1,6 @@
-const { showDataset } = require("../libs/cron");
+// const { showDataset } = require("../libs/cron");
 const { fetchRewardPostStatsMonth } = require("../libs/db");
+const { showDataset } = require("../libs/reddit/karma");
 const { getTotalPayoutReward } = require("../libs/reward");
 
 test('showDataset', () => {
