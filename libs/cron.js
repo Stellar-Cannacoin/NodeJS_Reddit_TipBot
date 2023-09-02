@@ -80,7 +80,7 @@ const karmaPayout = async () => {
                     `Monthly CANNACOIN distribution 💚 💨`,
                     `- Total karma: __${karma}__\n\n`+
                     `- Total payout: __${(karma)*reward}__\n\n`+
-                    `- Karma ^((CANNACOIN)^): __${reward}__ \n\n`+
+                    `- Each Karma is worth ^((CANNACOIN)^): __${reward}__ \n\n`+
                     `- Tipped __${records.length}__ users this month\n\n`+
                     `Our monthly CANNACOIN distribution have taken place, puff puff fam! `+
                     `
