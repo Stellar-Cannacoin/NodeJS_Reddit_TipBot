@@ -9,7 +9,7 @@ const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, r
 const fs = require('fs');
 const { logger } = require('./util');
 const { createMessage } = require('./reddit/inbox')
-const fileName = './data/runtime.json'
+const fileName = '../data/runtime.json'
 const runtimeFile = require(fileName)
 
 const karmaPayout = async () => {
