@@ -448,7 +448,7 @@ const executeCommand = async (message) => {
                     return
                 }
                 
-                withdrawToWallet("Withdrawal", amountWithdraw, userWallet.wallet.toUpperCase())
+                withdrawToWallet(message.author.name, amountWithdraw, userWallet.wallet.toUpperCase())
                 .then(async data => {
                     if (data) {
                         let amount_negative = -Math.abs(amountWithdraw)
