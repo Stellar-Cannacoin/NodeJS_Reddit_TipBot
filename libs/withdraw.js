@@ -44,7 +44,8 @@ const withdrawToWallet = (memo, amount, wallet) => {
             }))
             .addMemo(stellar.Memo.text(memo))
             .setTimeout(TimeoutInfinite)
-            .build();
+            .build()
+
             transaction.sign(issuerPair)
             return server.submitTransaction(transaction)
         })
@@ -56,7 +57,8 @@ const withdrawToWallet = (memo, amount, wallet) => {
              * Log error to better understand whats failing
              */
             console.log("error sending payment", error)
-
+            console.log(JSON.stringify(error.config.data))
+            
             /**
              * Check if the error is a fee error or a generic one
              */
@@ -73,7 +75,7 @@ const withdrawToWallet = (memo, amount, wallet) => {
                 resolve(true)
             })
             .catch(error => {
-                console.log(error)
+                console.log(JSON.stringify(error.config.data))
                 reject(error)
             })
         });

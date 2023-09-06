@@ -382,7 +382,7 @@ const executeCommand = async (message) => {
                     markMessageAsRead(message.id)
                     return
                 }
-                
+                console.log(`Sending funds to ${wallet.toUpperCase()}`)
                 withdrawToWallet(message.author.name, amount, wallet.toUpperCase())
                 .then(async data => {
                     if (data) {
