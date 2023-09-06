@@ -229,7 +229,7 @@ const getWalletAddress = (string) => {
 const getWalletLinkAddress = (string) => {
     // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/]+)/
     // let regex = /send ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? ([A-Za-z0-9\/_-]+)/
-    let regex = /link ([A-Za-z]+([0-9]+[A-Za-z]+)+)/
+    let regex = /link ([A-Za-z0-9]+)/ // /link ([A-Za-z]+([0-9]+[A-Za-z]+)+)/
     if (!string.match(regex)) {
         return false
     }

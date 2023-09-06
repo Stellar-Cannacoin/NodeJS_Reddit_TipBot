@@ -375,6 +375,16 @@ const distributeReward = (user, amount, token) => {
     })
 }
 
+const listUsers = () => {
+    return new Promise(async resolve => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        const results = await collection.find().toArray()
+        resolve(results)
+    })
+}
+
 const getUserBalance = (user) => {
     return new Promise(async resolve => {
         await client.connect();
@@ -484,5 +494,6 @@ module.exports = {
     fetchLeaderboardAlltime,
     updateOptIn,
     updateUserFlairStatus,
-    backupUserFlair
+    backupUserFlair,
+    listUsers
 }
