@@ -492,9 +492,7 @@ const executeCommand = async (message) => {
                 let flair = getFlairParams(message.body.toLowerCase())
 
                 let { flair_text } = await getUserFlair(message.author.name.toLowerCase())
-                // if (!flair_text.includes("KARMA") || !flair_text.includes("CANNACOIN")) {
-                //     backupUserFlair(message.author.name, flair_text)
-                // }
+                
                 if (flair.status == 'enable') {
                     await updateUserFlairStatus(message.author.name, true, flair.type, flair_text)
                     await checkFlairUpdate(message.author.name, true)
@@ -651,7 +649,7 @@ const checkFlairUpdate = (user, status) => {
                 break
 
                 default:
-                    setUserFlair(user, flair_text)
+                    setUserFlair(user, dbuser.flair_sub)
                     resolve(true)
                 break
             }
