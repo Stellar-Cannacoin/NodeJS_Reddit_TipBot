@@ -1,6 +1,9 @@
 .env
 sample.env
-/data
+/data/blacklist.json
+/data/rewards.json
+/data/runtime.json
+/data/tokens.js
 sample.js
 /backup
 /__tests__/debug
