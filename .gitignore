@@ -3,3 +3,4 @@ sample.env
 /data
 sample.js
 /backup
+/__tests__/debug
