@@ -59,6 +59,11 @@ const karmaPayout = async () => {
             runtimeFile.count++
             runtimeFile.lastrun = new Date()
             
+            /**
+             * Rewrite this to support database storage instead of 
+             * reading/writing to a file, as it would require the entire app to be
+             * restarted. This in order to read the new values.
+             */
             fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(error) {
                 if (error) { 
                     logger(`Error. ${error}`)

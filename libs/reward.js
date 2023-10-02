@@ -13,6 +13,12 @@ const calculateRewardPerUser = (upvotes) => {
      * Total upvotes divided by the Canna reward for that month. This will tell us how many Canna each upvote is worth.
      * Ex. 1000000 canna divide by 250k upvotes would equal 4 canna per upvote.
     */
+
+    /**
+     * TODO: Redo this to read from database instead of reading from
+     * the JSON file. If you want to use a JSON file, you'd need to reload the 
+     * server after every update
+     */
     const runtimeCount = require('../data/runtime.json')
     return rewardArray[runtimeCount.count]/upvotes
 }
