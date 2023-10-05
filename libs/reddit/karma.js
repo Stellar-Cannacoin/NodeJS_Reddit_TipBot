@@ -10,13 +10,13 @@ const showDataset = async () => {
                 karma = 0
             }
             let records = await fetchRewardRecordsCurrent()
-            let reward = calculateRewardPerUser(karma)
+            let reward = await calculateRewardPerUser(karma)
 
             let payload = {
                 total_karma: parseInt(karma),
                 total_users: records.length,
                 payout_per_karma: reward,
-                total_payout: getTotalPayoutReward() //parseFloat((karma)*reward).toFixed(7)
+                total_payout: await getTotalPayoutReward() //parseFloat((karma)*reward).toFixed(7)
             }
         
             resolve(payload)
