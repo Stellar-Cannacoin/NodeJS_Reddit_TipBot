@@ -66,14 +66,6 @@ const karmaPayout = async () => {
              * 
              * TODO: db.updateRuntime()
              */
-            // fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(error) {
-            //     if (error) { 
-            //         logger(`Error. ${error}`)
-            //         return reject(error)
-            //     }
-            // })
-            let current = await readRuntimeValues()
-            let next = current++
 
             logger("Ran monthly payout")
             botLogger({
@@ -86,14 +78,6 @@ const karmaPayout = async () => {
                 /**
                  * Store runtime variables into database
                  */
-                // storeRuntimeValues(current, next)
-                // .then(data => {
-                //     console.log("store status:", data)
-                // })
-                // .catch(error => {
-                //     console.log("store error:", error)
-                // })
-
                 try {
                     let { count } = await readRuntimeValues()
                     let next = parseInt(count+1)
