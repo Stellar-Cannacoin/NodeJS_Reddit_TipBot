@@ -457,12 +457,54 @@ const backupUserFlair = (user, flair) => {
     })
 }
 
+/**
+ * Log activity from the bot, needs an entire valid 
+ * MongoDB JSON Object
+ * @param {Object} document 
+ * @returns Promise
+ */
 const botLogger = (document) => {
     return new Promise(async resolve => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('logs')
         const results = await collection.insertOne(document)
+        resolve(results)
+    })
+}
+
+/**
+ * Read runtime data from the database in order to calculate
+ * the payout rewards
+ * @returns Promise
+ */
+const readRuntimeValues = () => {
+    return new Promise(async (resolve, reject) => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('runtime')
+        const results = await collection.find().toArray()
+        
+        if (results.length == 0) {
+            return reject('No records found')
+        }
+        resolve(results[0])
+    })
+}
+
+/**
+ * Store runtime variables to be used in CRON jobs
+ * @param {Int} prev Current runtime count
+ * @param {Int} count New runtime count prev++
+ * @returns Promise
+ */
+const storeRuntimeValues = (prev, count) => {
+    return new Promise(async (resolve, reject) => {
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('runtime')
+        const results = await collection.updateOne({count: prev}, {$set: {count: count, lastrun: new Date()}}, {upsert: false})
+
         resolve(results)
     })
 }
@@ -495,5 +537,7 @@ module.exports = {
     updateOptIn,
     updateUserFlairStatus,
     backupUserFlair,
-    listUsers
+    listUsers,
+    readRuntimeValues,
+    storeRuntimeValues
 }

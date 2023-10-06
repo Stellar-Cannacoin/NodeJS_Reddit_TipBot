@@ -55,16 +55,18 @@ const karmaPayout = async () => {
          * Wait for payout Promise
          * in order for the code to run correctly
          */
-        Promise.all(payout).then((response) => {
+        Promise.all(payout).then(async (response) => {
             runtimeFile.count++
             runtimeFile.lastrun = new Date()
             
-            fs.writeFile(fileName, JSON.stringify(runtimeFile), function writeJSON(error) {
-                if (error) { 
-                    logger(`Error. ${error}`)
-                    return reject(error)
-                }
-            })
+            /**
+             * Rewrite this to support database storage instead of 
+             * reading/writing to a file, as it would require the entire app to be
+             * restarted. This in order to read the new values.
+             * 
+             * TODO: db.updateRuntime()
+             */
+
             logger("Ran monthly payout")
             botLogger({
                 type: "reward",
@@ -72,7 +74,19 @@ const karmaPayout = async () => {
                 users: records.length,
                 totalamount: reward*records.length,
                 payout: reward
-            }).then(data => {
+            }).then(async data => {
+                /**
+                 * Store runtime variables into database
+                 */
+                try {
+                    let { count } = await readRuntimeValues()
+                    let next = parseInt(count+1)
+                    
+                    await storeRuntimeValues(count, next)
+                } catch (error) {
+                    console.log("failed to set runtime variables", error)
+                }
+
                 /**
                  * Create submission to subreddit
                  */
