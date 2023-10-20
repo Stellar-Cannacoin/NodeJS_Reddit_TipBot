@@ -44,7 +44,7 @@ const { checkAccountTrust } = require('./stellar')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
-    subreddit: 'stellarcannacoin',//subredditnames,//process.env.SUBREDDIT,
+    subreddit: 'stellarcannacoin', //stellarcannacoin',//subredditnames,//process.env.SUBREDDIT,
     limit: 3,
     pollTime: 30000
 })
