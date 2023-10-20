@@ -577,8 +577,7 @@ const markMessageAsRead = (id) => {
     return rInbox.getMessage(id).markAsRead()
 }
 const markAllMessagesAsRead = (id) => {
-    return rInbox.markMessagesAsRead
-    return rInbox.getMessage(id).markAsRead()
+    return rInbox.readAllMessages()
 }
 const replyToMessage = (id, text) => {
     return rInbox.getMessage(id).reply(text+'  \n  \n  [`Commands`](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki) | [`Cannacoin`](https://stellarcannacoin.org) | [`StashApp`](https://stashapp.cloud) | [`Reddit`](https://www.reddit.com/r/StellarCannaCoin) | [`Discord`](https://discord.gg/YeTRYV6nUv) | [`GitHub`](https://github.com/stellar-Cannacoin)')
@@ -676,6 +675,7 @@ module.exports = {
     createComment,
     getInbox,
     markMessageAsRead,
+    markAllMessagesAsRead,
     messageStream,
     commentStream,
     setUserFlair,

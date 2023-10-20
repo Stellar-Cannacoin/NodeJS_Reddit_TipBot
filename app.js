@@ -36,18 +36,14 @@ cron.schedule('0 12 1 * *', async () => {
 logger('Monthly CRON scheduled')
 
 /**
- * Monthly fund transfer to cover monthly distribution
+ * Clear all messages at startup
  */
-// cron.schedule('0 0 1 * *', async () => {
-//     transferFunds()
-//     .then(data => {
-//         console.log("Successfully transferred funds")
-//     })
-//     .catch(error => {
-//         console.log("error", error)
-//     })
-// })
-logger('Funds management service running')
+try {
+    reddit.markAllMessagesAsRead()
+    logger('Marked all messages as read')
+} catch (error) {
+    logger(error)
+}
 
 /**
  * Set user flairs every 24th hour
