@@ -44,9 +44,9 @@ const { checkAccountTrust } = require('./stellar')
 let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 
 const stream = new CommentStream(r, {
-    subreddit: subredditnames,//process.env.SUBREDDIT,
+    subreddit: 'stellarcannacoin', //stellarcannacoin',//subredditnames,//process.env.SUBREDDIT,
     limit: 3,
-    pollTime: 20000
+    pollTime: 30000
 })
 
 /**
@@ -85,17 +85,17 @@ const messageStream = async () => {
                 } 
                 if (message.replies.length > 0) {
                     message.replies.map(messageReplies => {
-                        
-                        if (messageReplies.new) {
-                            logger("Received message reply")
-                            executeCommand(messageReplies)
-                        }
-                        markMessageAsRead(messageReplies.id)
-                        return
-                        
+                        setTimeout(function () {
+                            if (messageReplies.new) {
+                                logger("Received message reply")
+                                executeCommand(messageReplies)
+                            }
+                            markMessageAsRead(messageReplies.id)
+                            return
+                        }, 1500)
                     })
                 }
-            }, 2000*index);
+            }, 3000*index);
         }))
         return true
     } catch (error) {
