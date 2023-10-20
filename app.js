@@ -67,15 +67,15 @@ cron.schedule('0 1 * * *', async () => {
 /**
  * Message Stream job
  */
-// cron.schedule('*/2 * * * *', async () => {
-//     logger("Checking messages")
-//     try {
-//         reddit.messageStream()
-//     } catch (error) {
-//         logger(error)
-//     }
+cron.schedule('*/2 * * * *', async () => {
+    logger("Checking messages")
+    try {
+        reddit.messageStream()
+    } catch (error) {
+        logger(error)
+    }
     
-// })
+})
 
 /**
  * Stellar payment listener
