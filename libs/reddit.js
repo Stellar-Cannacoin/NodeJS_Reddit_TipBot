@@ -85,17 +85,17 @@ const messageStream = async () => {
                 } 
                 if (message.replies.length > 0) {
                     message.replies.map(messageReplies => {
-                        
-                        if (messageReplies.new) {
-                            logger("Received message reply")
-                            executeCommand(messageReplies)
-                        }
-                        markMessageAsRead(messageReplies.id)
-                        return
-                        
+                        setTimeout(function () {
+                            if (messageReplies.new) {
+                                logger("Received message reply")
+                                executeCommand(messageReplies)
+                            }
+                            markMessageAsRead(messageReplies.id)
+                            return
+                        }, 1500)
                     })
                 }
-            }, 2000*index);
+            }, 3000*index);
         }))
         return true
     } catch (error) {
