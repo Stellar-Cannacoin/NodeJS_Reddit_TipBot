@@ -140,6 +140,15 @@ stream.on("item", async comment => {
                 try {
                     let { balances } = await getUserBalance(comment.author.name)
                     let tokenbalance = balances?.CANNACOIN || 0
+
+                    /**
+                     * DEBUG
+                     */
+                    logger(`Comment body: ${comment.body}`)
+                    logger(`Receiver user: ${parentComment.author.name}`)
+                    logger(`Tipper (sender) balance: ${tokenbalance}`)
+                    logger(`Tip amount: ${getTipAmountComment}`)
+
                     if (parseFloat(tokenbalance) < parseFloat(getTipAmountComment) || isNegative(parseFloat(tokenbalance))) {
                         logger("Error. Not enough funds")
                         createMessage(comment.author.name, `Failed to tip`, `Not enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
@@ -159,8 +168,8 @@ stream.on("item", async comment => {
                 let balanceA = await getUserBalance(comment.author.name)
                 let balanceB = await getUserBalance(parentComment.author.name)
 
-                let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN")
-                
+                let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN", parseFloat(balanceA.balances.CANNACOIN), parseFloat(balanceB.balances.CANNACOIN))
+
                 /**
                  * If you want to disable tips to the bot, uncomment
                  * the tip function from the syntax below
@@ -363,7 +372,7 @@ const executeCommand = async (message) => {
                         return
                     }
 
-                    let tipResponse = await tipUser(message.author.name, wallet.split('u/')[1], parseFloat(amount), "CANNACOIN")
+                    let tipResponse = await tipUser(message.author.name, wallet.split('u/')[1], parseFloat(amount), "CANNACOIN", parseFloat(balanceA.balances.CANNACOIN), parseFloat(balanceB.balances.CANNACOIN))
 
                     if (!tipResponse.upsertedCount) {
                         replyToMessage(message.id, `Sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)

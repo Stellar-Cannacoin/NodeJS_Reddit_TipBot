@@ -339,16 +339,26 @@ const updateUserTest = (user) => {
     })
 }
 
-const tipUser = (from, to, amount, token) => {
+const tipUser = (from, to, amount, token, balanceA, balanceB) => {
     return new Promise(async resolve => {
-        let amount_negative = -Math.abs(amount)
         let balanceCurrency = `balances.${token}`
+
+        console.log("Sender balance: "+parseFloat(balanceA-amount))
+        console.log("Receiver balance: "+parseFloat(balanceB+amount))
 
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$inc: { [balanceCurrency]: amount_negative }})
-        const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
+        
+        /**
+         * Depreciated way of handleing it, could cause negative numbers when not 
+         * to be expected
+         */
+        // const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$inc: { [balanceCurrency]: amount_negative }})
+        // const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
+
+        const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$set: { [balanceCurrency]: parseFloat(balanceA-amount) }})
+        const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$set: { [balanceCurrency]: parseFloat(balanceB+amount) }}, {upsert: true})
         resolve(resultsB)
     })
 }
