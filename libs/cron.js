@@ -4,20 +4,20 @@ const axios = require('axios')
 
 const reddit = require('./reddit')
 const { calculateRewardPerUser } = require('./reward')
-const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers, fetchRewardRecordsCurrent, fetchRewardPostStatsMonth, distributeReward, fetchRewardPostStatsCron } = require('./db')
+const { fetchRewardRecords, fetchRewardStats, botLogger, fetchRewardPostStats, recordPost, fetchRewardRecordsUsers, fetchRewardRecordsCurrent, fetchRewardPostStatsMonth, distributeReward, fetchRewardPostStatsCron, readRuntimeValues, storeRuntimeValues } = require('./db')
 
 const fs = require('fs');
 const { logger } = require('./util');
 const { createMessage } = require('./reddit/inbox')
-const fileName = '../data/runtime.json'
-const runtimeFile = require(fileName)
 
 const karmaPayout = async () => {
     return new Promise(async (resolve, reject) => {
         logger("Monthly cronjob started")
         let { karma } = await fetchRewardPostStatsCron()
         let records = await fetchRewardRecords()
-        let reward = calculateRewardPerUser(karma)
+        let reward = await calculateRewardPerUser(karma)
+        
+        let continueNext = false
 
         /**
          * Filter out users without a current score
@@ -28,12 +28,7 @@ const karmaPayout = async () => {
         const payout = await records.map((user, i) => {
             return new Promise(resolve => {
                 setTimeout(async () => {
-                    // if (!continueRun) {
-                    //     console.log("skipping")
-                    //     return
-                    // }
-                    
-                    if (Math.floor(reward*user.score) <= 0) {
+                    if (Math.floor(JSON.stringify(reward)*user.score) <= 0) {
                         return
                     }
 
@@ -50,15 +45,13 @@ const karmaPayout = async () => {
                 }, i * 25000)
             })
         })
+        
 
         /**
          * Wait for payout Promise
          * in order for the code to run correctly
          */
         Promise.all(payout).then(async (response) => {
-            runtimeFile.count++
-            runtimeFile.lastrun = new Date()
-            
             /**
              * Rewrite this to support database storage instead of 
              * reading/writing to a file, as it would require the entire app to be

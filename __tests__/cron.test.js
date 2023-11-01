@@ -14,5 +14,5 @@ const { collectKarma, karmaPayout } = require('../libs/cron')
 test('payoutKarma', async () => {
     return karmaPayout().then(async (data) => {
         expect(data).toBe(true)
-    });
+    })
 })
