@@ -309,7 +309,8 @@ const updateBalance = (user, amount, token) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }})
+        // const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }})
+        const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$set: { [balanceCurrency]: amount }})
         resolve(resultsA)
     })
 }
@@ -343,8 +344,15 @@ const tipUser = (from, to, amount, token, balanceA, balanceB) => {
     return new Promise(async resolve => {
         let balanceCurrency = `balances.${token}`
 
-        console.log("Sender balance: "+parseFloat(balanceA-amount))
-        console.log("Receiver balance: "+parseFloat(balanceB+amount))
+        console.log("Sender balance: "+parseFloat(balanceA)-amount)
+        console.log("Receiver balance: "+parseFloat(balanceB)+amount)
+
+        let sender = parseFloat(balanceA)-amount
+        let receiver = parseFloat(balanceB)+amount
+
+        /**
+         * Check to see if the receiver balance is negative
+         */
 
         await client.connect();
         const db = client.db(database)
@@ -357,8 +365,8 @@ const tipUser = (from, to, amount, token, balanceA, balanceB) => {
         // const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$inc: { [balanceCurrency]: amount_negative }})
         // const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$inc: { [balanceCurrency]: amount }}, {upsert: true})
 
-        const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$set: { [balanceCurrency]: parseFloat(balanceA-amount) }})
-        const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$set: { [balanceCurrency]: parseFloat(balanceB+amount) }}, {upsert: true})
+        const resultsA = await collection.updateOne({user: from.toLowerCase()}, {$set: { [balanceCurrency]: parseFloat(sender) }})
+        const resultsB = await collection.updateOne({user: to.toLowerCase()}, {$set: { [balanceCurrency]: parseFloat(receiver) }}, {upsert: true})
         resolve(resultsB)
     })
 }
