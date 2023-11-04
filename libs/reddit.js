@@ -395,7 +395,8 @@ const executeCommand = async (message) => {
                 withdrawToWallet(message.author.name, amount, wallet.toUpperCase())
                 .then(async data => {
                     if (data) {
-                        let amount_negative = -Math.abs(amount)
+                        // let amount_negative = -Math.abs(amount)
+                        let amount_negative = parseFloat(balance?.balances?.CANNACOIN)-parseFloat(amount)
 
                         updateBalance(message.author.name, amount_negative, "CANNACOIN")
                         replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
@@ -460,7 +461,8 @@ const executeCommand = async (message) => {
                 withdrawToWallet(message.author.name, amountWithdraw, userWallet.wallet.toUpperCase())
                 .then(async data => {
                     if (data) {
-                        let amount_negative = -Math.abs(amountWithdraw)
+                        // let amount_negative = -Math.abs(amountWithdraw)
+                        let amount_negative = parseFloat(tokenbalanceWithdraw)-parseFloat(amountWithdraw)
 
                         updateBalance(message.author.name, amount_negative, "CANNACOIN")
                         replyToMessage(message.id, `We've started the process of moving ${amountWithdraw} CANNACOIN to the wallet ${userWallet.wallet.toUpperCase()}`)
