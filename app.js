@@ -15,7 +15,7 @@ logger('Tipbot is starting')
 /**
  * Collect user's karma every 24 hours
  */
-cron.schedule('30 * * * *', async () => {
+cron.schedule('*/60 * * * *', async () => {
     logger("Collecting karma")
     collectKarma()
 })
