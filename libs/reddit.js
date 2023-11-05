@@ -84,7 +84,7 @@ const messageStream = async () => {
                     return
                 } 
                 if (message.replies.length > 0) {
-                    await new Promise.all(message.replies.map((messageReplies, index) => {
+                    new Promise(message.replies.map((messageReplies, index) => {
                         setTimeout(function () {
                             if (messageReplies.new) {
                                 logger("Received message reply")
@@ -93,9 +93,14 @@ const messageStream = async () => {
                             markMessageAsRead(messageReplies.id)
                             return
                         }, 2000) // added dynamic timeout to not hit the rate limit
-                    }))
+                    })).then(data => {
+                        markMessageAsRead(message.id)
+                    })
+                    .catch(error => {
+                        logger(error)
+                    })
                 }
-                markMessageAsRead(message.id)
+                
             }, 3000*index);
         }))
         return true
