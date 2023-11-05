@@ -46,7 +46,7 @@ let subredditnames = subreddits.map(sub => sub.subreddit).join('+')
 const stream = new CommentStream(r, {
     subreddit: subredditnames,//process.env.SUBREDDIT,
     limit: 3,
-    pollTime: 30000
+    pollTime: 40000
 })
 
 /**
@@ -84,7 +84,7 @@ const messageStream = async () => {
                     return
                 } 
                 if (message.replies.length > 0) {
-                    message.replies.map(messageReplies => {
+                    message.replies.map((messageReplies, index) => {
                         setTimeout(function () {
                             if (messageReplies.new) {
                                 logger("Received message reply")
@@ -92,7 +92,7 @@ const messageStream = async () => {
                             }
                             markMessageAsRead(messageReplies.id)
                             return
-                        }, 1500)
+                        }, 1500*index) // added dynamic timeout to not hit the rate limit
                     })
                 }
             }, 3000*index);

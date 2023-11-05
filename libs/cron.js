@@ -164,7 +164,7 @@ const collectKarma = async () => {
                     } catch (error) {
                         console.log(error)
                     }
-                }, 2000*index);
+                }, 5000*index);
             }))
             
             resolve(data.data.children)
@@ -184,15 +184,9 @@ const showDataset = async () => {
         if (!karma) {
             karma = 0
         }
-        // let { karma } = await fetchRewardPostStatsMonth('06')
-        
-        // let karma_users = await fetchRewardStats()
+
         let records = await fetchRewardRecordsCurrent()
         let reward = calculateRewardPerUser(karma)
-        // console.log("Karma & payout stats", karma_users.karma)
-        // console.log("Karma:", karma)
-        // console.log("Users:", records.length)
-        // console.log("Karma worth:", reward)
         let payload = {
             total_karma: (karma),
             total_users: records.length,
