@@ -84,7 +84,8 @@ const messageStream = async () => {
                     return
                 } 
                 if (message.replies.length > 0) {
-                    message.replies.map((messageReplies, index) => {
+                    // for (item in message.replies) {
+                    for (const messageReplies of message.replies) {
                         setTimeout(async function () {
                             if (messageReplies.new) {
                                 logger("Received message reply")
@@ -92,8 +93,10 @@ const messageStream = async () => {
                             }
                             await markMessageAsRead(messageReplies.id)
                             return
-                        }, 2000) // added dynamic timeout to not hit the rate limit
-                    })
+                        }, 2000)
+                    }
+                    // message.replies.map((messageReplies, index) => {
+                    // })
                 }
                 await markMessageAsRead(message.id)
             }, 3000*index);
