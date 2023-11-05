@@ -74,7 +74,7 @@ const messageStream = async () => {
     try {
         let inbox = await getInbox()
         await new Promise.all(inbox.map(async (message, index) => {
-            setTimeout(function () {
+            setTimeout(async function () {
                 if (message.new) {
                     if (message.dest.toLowerCase() != process.env.REDDIT_USERNAME.toLowerCase()) {
                         return
@@ -84,7 +84,7 @@ const messageStream = async () => {
                     return
                 } 
                 if (message.replies.length > 0) {
-                    message.replies.map((messageReplies, index) => {
+                    await new Promise.all(message.replies.map((messageReplies, index) => {
                         setTimeout(function () {
                             if (messageReplies.new) {
                                 logger("Received message reply")
@@ -92,8 +92,8 @@ const messageStream = async () => {
                             }
                             markMessageAsRead(messageReplies.id)
                             return
-                        }, 1500*index) // added dynamic timeout to not hit the rate limit
-                    })
+                        }, 2500) // added dynamic timeout to not hit the rate limit
+                    }))
                 }
             }, 3000*index);
         }))
