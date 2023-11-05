@@ -92,9 +92,10 @@ const messageStream = async () => {
                             }
                             markMessageAsRead(messageReplies.id)
                             return
-                        }, 2500) // added dynamic timeout to not hit the rate limit
+                        }, 2000) // added dynamic timeout to not hit the rate limit
                     }))
                 }
+                markMessageAsRead(message.id)
             }, 3000*index);
         }))
         return true
