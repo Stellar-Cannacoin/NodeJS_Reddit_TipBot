@@ -84,17 +84,18 @@ const messageStream = async () => {
                     return
                 } 
                 if (message.replies.length > 0) {
-                    setTimeout(async function () {
-                        if (messageReplies.new) {
-                            logger("Received message reply")
-                            executeCommand(messageReplies)
-                        }
-                        await markMessageAsRead(messageReplies.id)
-                        return
-                    }, 2000) // added dynamic timeout to not hit the rate limit
+                    message.replies.map((messageReplies, index) => {
+                        setTimeout(async function () {
+                            if (messageReplies.new) {
+                                logger("Received message reply")
+                                executeCommand(messageReplies)
+                            }
+                            await markMessageAsRead(messageReplies.id)
+                            return
+                        }, 2000) // added dynamic timeout to not hit the rate limit
+                    })
                 }
                 await markMessageAsRead(message.id)
-                
             }, 3000*index);
         }))
         return true
