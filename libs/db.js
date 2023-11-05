@@ -344,11 +344,12 @@ const tipUser = (from, to, amount, token, balanceA, balanceB) => {
     return new Promise(async resolve => {
         let balanceCurrency = `balances.${token}`
 
-        console.log("Sender balance: "+parseFloat(balanceA)-amount)
-        console.log("Receiver balance: "+parseFloat(balanceB)+amount)
-
         let sender = parseFloat(balanceA)-amount
         let receiver = parseFloat(balanceB)+amount
+
+        console.log("Tip amount: "+parseFloat(amount))
+        console.log(`[${from}]`, "Sender balance: "+parseFloat(sender))
+        console.log(`[${to}]`, "Receiver balance: "+parseFloat(receiver))
 
         /**
          * Check to see if the receiver balance is negative

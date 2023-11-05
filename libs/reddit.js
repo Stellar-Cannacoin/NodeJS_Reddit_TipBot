@@ -81,24 +81,25 @@ const messageStream = async () => {
                     }
                     logger(`Received message`)
                     executeCommand(message)
+                    await markMessageAsRead(message.id)
                     return
                 } 
                 if (message.replies.length > 0) {
                     // for (item in message.replies) {
-                    for (const messageReplies of message.replies) {
+                    // for (const file of message.replies) {
+
+                    // }
+                    message.replies.map((messageReplies, index) => {
                         setTimeout(async function () {
                             if (messageReplies.new) {
                                 logger("Received message reply")
                                 executeCommand(messageReplies)
+                                await markMessageAsRead(messageReplies.id)
                             }
-                            await markMessageAsRead(messageReplies.id)
                             return
-                        }, 2000)
-                    }
-                    // message.replies.map((messageReplies, index) => {
-                    // })
+                        }, 2000*index)
+                    })
                 }
-                await markMessageAsRead(message.id)
             }, 3000*index);
         }))
         return true
@@ -295,7 +296,8 @@ const executeCommand = async (message) => {
     message.body = message.body.replace(/(\r\n|\n|\r)/gm, "")
 
     if (!botCommandRaw) {
-        replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
+        // Decrease to reduce limits
+        // replyToMessage(message.id, `Invalid command  \n  \n  \n  **Tipbot help manual**  \nAvailable commands are:\n\n- !canna {amount} (tip a user in the comment section)\n\n\n- balance (get current balance)\n- send {amount} {address} (withdraw funds to external wallet)\n- deposit (despoit funds to account)  \n  \nVisit our [Wiki to know more!](https://github.com/Stellar-Cannacoin/NodeJS_Reddit_TipBot/wiki)`)
         markMessageAsRead(message.id)
         return false
     }
@@ -320,6 +322,8 @@ const executeCommand = async (message) => {
             break
 
             case 'send':
+                await markMessageAsRead(message.id)
+
                 let amount = 0;
 
                 let balance = await getUserBalance(message.author.name)
@@ -341,13 +345,13 @@ const executeCommand = async (message) => {
 
                 if (parseFloat(tokenbalance) < parseFloat(amount)) {
                     replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalance} CANNACOIN`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                     return
                 }
 
                 if (!wallet || wallet == null) {
                     replyToMessage(message.id, `Something went wrong, invalid user or wallet address. If you're sending to a user, use :'u/username'`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                     return
                 }
                 if (wallet.includes('u/')) {
@@ -359,12 +363,12 @@ const executeCommand = async (message) => {
                         let { balances } = await getUserBalance(message.author.name)
                         if (balances.CANNACOIN < amount) {
                             replyToMessage(message.id, `Not enough funds. \nYour current balance is ${balances.CANNACOIN} CANNACOIN`)
-                            markMessageAsRead(message.id)
+                            // await markMessageAsRead(message.id)
                             return
                         }
                     } catch (error) {
                         replyToMessage(message.id, `Not enough funds. \n  User not found`)
-                        markMessageAsRead(message.id)
+                        // await markMessageAsRead(message.id)
                         return
                     }
                     
@@ -372,7 +376,7 @@ const executeCommand = async (message) => {
                     let balanceB = await getUserBalance(wallet.split('u/')[1])
 
                     if (!balanceA?.balances?.CANNACOIN || amount > balanceA?.balances?.CANNACOIN ) {
-                        replyToMessage(message.id, `Not enough funds. \n  User not found`)
+                        await replyToMessage(message.id, `Not enough funds. \n  User not found`)
                         return
                     }
 
@@ -380,35 +384,35 @@ const executeCommand = async (message) => {
 
                     if (!tipResponse.upsertedCount) {
                         replyToMessage(message.id, `Sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)
-                        createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
-                        markMessageAsRead(message.id)
+                        // createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${parseFloat(balanceB.balances.CANNACOIN)+parseFloat(amount)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
+                        await markMessageAsRead(message.id)
                         return
                     }
                     replyToMessage(message.id, `Creating a new account and sent `+'`'+amount+' CANNACOIN` to '+`${wallet}`)
-                    createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${amount}`)
-                    markMessageAsRead(message.id)
+                    // createMessage(wallet.split('u/')[1], `You received a tip!`, `Someone tipped you ${amount} CANNACOIN.  \nYour sticky-icky balance is ${amount}`)
+                    // await markMessageAsRead(message.id)
                     return
                 }
 
                 if(!await checkAccountTrust('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', wallet.toUpperCase())) {
                     replyToMessage(message.id, `Please add the trust to your wallet before transferring funds out.`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                     return
                 }
                 console.log(`Sending funds to ${wallet.toUpperCase()}`)
-                withdrawToWallet(message.author.name, amount, wallet.toUpperCase())
+                await withdrawToWallet(message.author.name, amount, wallet.toUpperCase())
                 .then(async data => {
                     if (data) {
                         // let amount_negative = -Math.abs(amount)
                         let amount_negative = parseFloat(balance?.balances?.CANNACOIN)-parseFloat(amount)
 
-                        updateBalance(message.author.name, amount_negative, "CANNACOIN")
+                        await updateBalance(message.author.name, amount_negative, "CANNACOIN")
                         replyToMessage(message.id, `We've started the process of moving ${amount} CANNACOIN to the wallet ${wallet.toUpperCase()}`)
-                        markMessageAsRead(message.id)
+                        // markMessageAsRead(message.id)
                         return
                     }
                     replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                 })
                 .catch(error => {
                     replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
@@ -421,7 +425,9 @@ const executeCommand = async (message) => {
             break
             
             case 'withdraw':
-                let amountWithdraw = 0;
+                await markMessageAsRead(message.id)
+
+                let amountWithdraw = 0
                 let userWallet = await getUserWallet(message.author.name.toLowerCase())
 
                 let balanceWithdraw = await getUserBalance(message.author.name)
@@ -429,7 +435,7 @@ const executeCommand = async (message) => {
 
                 if (!userWallet.wallet) {
                     replyToMessage(message.id, 'No wallet linked with account. Please run the `link {wallet}` command in order to link your user with a Stellar address. This will automate the withdrawal process.')
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                     return
                 }
 
@@ -446,11 +452,9 @@ const executeCommand = async (message) => {
 
                 if (parseFloat(tokenbalanceWithdraw) < parseFloat(amountWithdraw)) {
                     replyToMessage(message.id, `Failed to withdraw  \n  \nNot enough funds. \nYour current balance is ${tokenbalanceWithdraw} CANNACOIN`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                     return
                 }
-
-                console.log("Wallet link found", userWallet.wallet)
 
                 if (process.env.ENABLE_WITHDRAWALS == 0) {
                     return replyToMessage(message.id, `Withdrawals are temporary disabled!`)
@@ -458,11 +462,11 @@ const executeCommand = async (message) => {
 
                 if(!await checkAccountTrust('CANNACOIN', 'GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ', userWallet.wallet.toUpperCase())) {
                     replyToMessage(message.id, `Please add the trust to your wallet before transfering funds out.`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                     return
                 }
                 
-                withdrawToWallet(message.author.name, amountWithdraw, userWallet.wallet.toUpperCase())
+                await withdrawToWallet(message.author.name, amountWithdraw, userWallet.wallet.toUpperCase())
                 .then(async data => {
                     if (data) {
                         // let amount_negative = -Math.abs(amountWithdraw)
@@ -470,11 +474,11 @@ const executeCommand = async (message) => {
 
                         updateBalance(message.author.name, amount_negative, "CANNACOIN")
                         replyToMessage(message.id, `We've started the process of moving ${amountWithdraw} CANNACOIN to the wallet ${userWallet.wallet.toUpperCase()}`)
-                        markMessageAsRead(message.id)
+                        // markMessageAsRead(message.id)
                         return
                     }
                     replyToMessage(message.id, `Something went wrong, please try again later, failed to run local withdrawal function`)
-                    markMessageAsRead(message.id)
+                    // markMessageAsRead(message.id)
                 })
                 .catch(error => {
                     replyToMessage(message.id, `Something went wrong, please try again later. \n  \nRelated to the Stellar Network`+'```  '+error+'  ```')
@@ -586,7 +590,7 @@ const getInbox = () => {
     return rInbox.getInbox({filter: 'messages'})
 }
 const getCommentStream = () => {
-    return rInbox.getInbox({filter: 'comments'})
+    return r.getInbox({filter: 'comments'})
 }
 const markMessageAsRead = (id) => {
     return rInbox.getMessage(id).markAsRead()
