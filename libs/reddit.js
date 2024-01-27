@@ -129,7 +129,7 @@ stream.on("item", async comment => {
         return
     }
 
-    if (comment.author.name == process.env.REDDIT_USERNAME) {
+    if (comment.author.name == process.env.REDDIT_USERNAME || comment.author.name == "B0tRank") {
         return
     }
 
