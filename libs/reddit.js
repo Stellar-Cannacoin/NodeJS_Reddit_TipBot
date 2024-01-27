@@ -173,7 +173,13 @@ stream.on("item", async comment => {
                 let balanceA = await getUserBalance(comment.author.name)
                 let balanceB = await getUserBalance(parentComment.author.name)
 
-                let tipResponse = await tipUser(comment.author.name, parentComment.author.name, parseFloat(getTipAmountComment), "CANNACOIN", parseFloat(balanceA.balances.CANNACOIN), parseFloat(balanceB.balances.CANNACOIN))
+                let tipResponse = await tipUser(
+                    comment.author.name, parentComment.author.name,
+                    parseFloat(getTipAmountComment),
+                    "CANNACOIN",
+                    parseFloat(balanceA.balances.CANNACOIN),
+                    parseFloat(balanceB.balances.CANNACOIN)
+                )
 
                 /**
                  * If you want to disable tips to the bot, uncomment
@@ -202,6 +208,9 @@ stream.on("item", async comment => {
                     createMessage(parentComment.author.name, `You received a tip!`, `Someone tipped you ${getTipAmountComment} CANNACOIN.  \nYour sticky-icky balance is ${(parseFloat(getTipAmountComment)).toFixed(2)}\n  \nWelcome to Stellar Cannacoin! \n  \nCongrats on your first tip! See the links below for commands.`)
                 }, 1000)
                 updateOptIn(parentComment.author.name, 1)
+            break
+            
+            default:
             break
         }
     });
