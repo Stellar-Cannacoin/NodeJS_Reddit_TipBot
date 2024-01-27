@@ -63,7 +63,7 @@ const withdrawToWallet = (memo, amount, wallet) => {
              * Check if the error is a fee error or a generic one
              */
             if (!isFeeError(error)) {
-                return resolve(error)
+                return reject(error)
             }
             /**
              * Catch transaction fails due to fees
