@@ -109,7 +109,8 @@ const collectKarma = async () => {
         logger(`Daily cronjob started`)
         axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}/new.json?sort=new`, {
             headers: {
-                "User-Agent": "PostmanRuntime/7.37.0"
+                "User-Agent": "PostmanRuntime/7.37.0",
+                "Host": "https://reddit.com"
             }
         })
         .then(async ({data}) => {
