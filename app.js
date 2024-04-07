@@ -19,7 +19,7 @@ logger('Tipbot is starting')
 // */60 * * * * <- every hour
 // cron.schedule('0 */4 * * *', async () => {
 cron.schedule('*/90 * * * *', async () => {
-        logger("Collecting karma")
+    logger("Collecting karma")
     collectKarma()
 })
 logger('Daily CRON scheduled')
