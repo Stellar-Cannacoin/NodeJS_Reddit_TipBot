@@ -107,7 +107,11 @@ const karmaPayout = async () => {
 const collectKarma = async () => {
     return new Promise(async (resolve, reject) => {
         logger(`Daily cronjob started`)
-        axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}/new.json?sort=new`)
+        axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}/new.json?sort=new`, {
+            headers: {
+                "User-Agent": "PostmanRuntime/7.37.0"
+            }
+        })
         .then(async ({data}) => {
             await Promise.all(data.data.children.map(async (item, index) => {
                 
