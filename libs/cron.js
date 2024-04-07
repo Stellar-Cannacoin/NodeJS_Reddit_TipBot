@@ -110,7 +110,7 @@ const collectKarma = async () => {
         axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}/new.json?sort=new`, {
             headers: {
                 "User-Agent": "PostmanRuntime/7.37.0",
-                "Host": "localhost"
+                "Host": "*.reddit.com"
             }
         })
         .then(async ({data}) => {
