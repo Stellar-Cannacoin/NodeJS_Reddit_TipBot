@@ -107,7 +107,7 @@ const karmaPayout = async () => {
 const collectKarma = async () => {
     return new Promise(async (resolve, reject) => {
         logger(`Daily cronjob started`)
-        axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}/new.json?sort=new`, {
+        axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}.json`, {
             headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
                 "Host": "*.reddit.com"
