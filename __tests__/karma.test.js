@@ -1,5 +1,6 @@
 require('dotenv').config()
 
+const { collectKarma } = require('../libs/cron');
 const { fetchRewardStats, fetchRewardRecords } = require('../libs/db');
 const { calculateRewardPerUser, getTotalPayoutReward } = require('../libs/reward');
 
@@ -21,6 +22,14 @@ test('fetchRewardRecords', () => {
 
 test('calculateRewardPerUser', async () => {
     let { karma } = await fetchRewardStats()
-    console.log("Payout per user:", calculateRewardPerUser(karma))
-    expect(calculateRewardPerUser(karma) > 0).toBe(true);
+    console.log("Payout per user:", await calculateRewardPerUser(karma))
+    expect(await calculateRewardPerUser(karma) > 0).toBe(true);
 });
+
+test('collectKarma', async () => {
+    let response = await collectKarma()
+    console.log({ response })
+    expect(Array.isArray(response)).toBe(true);
+});
+
+
