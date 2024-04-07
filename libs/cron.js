@@ -104,7 +104,7 @@ const karmaPayout = async () => {
     })
 }
 
-const collectKarma = async () => {
+const collectKarmaV1 = async () => {
     return new Promise(async (resolve, reject) => {
         logger(`Daily cronjob started`)
         axios.get(`https://www.reddit.com/r/${process.env.SUBREDDIT}.json`, {
@@ -136,7 +136,6 @@ const collectKarma = async () => {
 
                 setTimeout(async function () {
                     try {
-                        console.log("POST ID:", post.id)
                         let comments = await reddit.getComments(post.id);
                         // console.log(comments)
 
@@ -178,6 +177,66 @@ const collectKarma = async () => {
         .catch(error => {
             console.log(error)
             reject(error)
+        })
+    })
+}
+
+const collectKarma = async () => {
+    return new Promise(async (resolve, reject) => {
+        reddit.getSubredditPosts().then(posts => {
+            posts.map(async (post) => {
+                if (post.author_is_blocked || post.banned_by != null) {
+                    return false
+                }
+
+                let record = {
+                    id: post.id, 
+                    title: post.title,
+                    score: post.score,
+                    user: post.author.name.toLowerCase(),
+                    ups: post.ups,
+                    downs: post.downs,
+                    ts: new Date(post.created*1000)
+                }
+
+                if (!post.author.name.includes("Automoderator") || !post.author.name.includes("Canna_tips") || !post.author.name.includes("Burnsivxx")) {
+                    await recordPost(record)
+                    return true
+                }
+                return false
+                
+            })
+        })
+        .catch(error => {
+            return error
+        })
+        .finally(() => {
+            reddit.getSubredditComments().then(posts => {
+                posts.map(async (comment) => {
+                    if (comment.author.name == "[deleted]") {
+                        return false
+                    }
+
+                    let record = {
+                        id: comment.id, 
+                        title: comment.body,
+                        score: comment.score,
+                        user: comment.author.name.toLowerCase(),
+                        ups: comment.ups,
+                        downs: comment.downs,
+                        ts: new Date(comment.created*1000)
+                    }
+
+                    await recordPost(record)
+                    return true
+                })
+            })
+            .catch(error => {
+                return error
+            })
+            .finally(() => {
+                return resolve(true)
+            })
         })
     })
 }

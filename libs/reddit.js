@@ -36,6 +36,16 @@ const rFlair = new Snoowrap({
 
 rFlair.config({ continueAfterRatelimitError: true })
 
+const rPosts = new Snoowrap({
+	userAgent: process.env.USER_AGENT,
+	clientId: process.env.APP_ID_DATA,
+	clientSecret: process.env.API_SECRET_DATA,
+	username: process.env.REDDIT_USERNAME,
+	password: process.env.REDDIT_PASSWORD,
+})
+
+rPosts.config({ continueAfterRatelimitError: true })
+
 let subreddits = require('../data/subreddits.json')
 const { showDataset } = require('./reddit/karma')
 const { createMessage } = require('./reddit/inbox')
@@ -686,8 +696,34 @@ const checkFlairUpdate = (user, status) => {
     })
 }
 
+const getSubredditPosts = () => {
+    return new Promise((async (resolve, reject) => {
+        try {
+            let posts = await r.getSubreddit(process.env.SUBREDDIT).getNew();
+            resolve(posts)
+        } catch (error) {
+            console.log(error)
+            reject(error)
+        }
+    }))
+}
+
+const getSubredditComments = () => {
+    return new Promise((async (resolve, reject) => {
+        try {
+            let comments = await r.getSubreddit(process.env.SUBREDDIT).getNewComments();
+            resolve(comments)
+        } catch (error) {
+            console.log(error)
+            reject(error)
+        }
+    }))
+}
+
 
 module.exports = {
+    getSubredditPosts,
+    getSubredditComments,
     getWalletAddress,
     getWalletLinkAddress,
     getAmountFromCommand,

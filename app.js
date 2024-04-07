@@ -3,7 +3,7 @@ require('dotenv').config()
 const cron = require('node-cron')
 
 const reddit = require('./libs/reddit')
-const { fetchRewardRecords, fetchUsers } = require('./libs/db')
+const { fetchRewardRecords, fetchUsers, recordPost } = require('./libs/db')
 
 const { paymentListener } = require('./libs/stellar')
 const { logger } = require('./libs/util');
@@ -18,7 +18,7 @@ logger('Tipbot is starting')
 // 0 */4 * * * <- every 4th hour
 // */60 * * * * <- every hour
 // cron.schedule('0 */4 * * *', async () => {
-cron.schedule('*/60 * * * *', async () => {
+cron.schedule('*/90 * * * *', async () => {
         logger("Collecting karma")
     collectKarma()
 })

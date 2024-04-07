@@ -7,3 +7,4 @@ sample.env
 sample.js
 /backup
 /__tests__/debug
+/node_modules
