@@ -8,7 +8,7 @@ require('dotenv').config()
 const { tokens } = require(`../content/tokens`);
 const { Keypair, TimeoutInfinite, StrKey } = require('stellar-base');
 const stellar = require('stellar-sdk');
-const { updateBalance } = require('./db');
+const { updateBalance, depositBalance } = require('./db');
 const { createMessage } = require('./reddit/inbox');
 const axios = require('axios');
 
@@ -114,7 +114,7 @@ const paymentListener = () => {
                         if (to != issuerPair.publicKey() || source_account == issuerPair.publicKey() || asset != "CANNACOIN:GBLJ4223KUWIMV7RAPQKBA7YGR4I7H2BIV4KIMMXMQWYQBOZ6HLZR3RQ" ) {
                             return
                         }
-                        updateBalance(memo.toLowerCase(), parseFloat(amount), "CANNACOIN")
+                        depositBalance(memo.toLowerCase(), parseFloat(amount), "CANNACOIN")
                         try {
                             createMessage(memo, 'Funds deposited', `You deposited ${amount} ${asset_code} into your account`)
                         } catch (error) {

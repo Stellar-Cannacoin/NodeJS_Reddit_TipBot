@@ -551,6 +551,7 @@ module.exports = {
     fetchRewardRecordsUsers,
     fetchRewardStats,
     distributeReward,
+    depositBalance,
     updateBalance,
     updateBalanceTest,
     updateUserTest,
