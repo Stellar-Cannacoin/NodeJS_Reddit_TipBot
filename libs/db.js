@@ -309,8 +309,22 @@ const updateBalance = (user, amount, token) => {
         await client.connect();
         const db = client.db(database)
         const collection = db.collection('users')
-        // const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$inc: { [balanceCurrency]: amount }})
         const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$set: { [balanceCurrency]: amount }})
+        resolve(resultsA)
+    })
+}
+
+const depositBalance = (user, amount, token) => {
+    return new Promise(async resolve => {
+        let balanceCurrency = `balances.${token}`
+        await client.connect();
+        const db = client.db(database)
+        const collection = db.collection('users')
+        
+        const userBalance = await collection.findOne({ user: user.toLowerCase()})
+        const sum = parseFloat(userBalance.balances[token])+parseFloat(amount)
+        const resultsA = await collection.updateOne({user: user.toLowerCase()}, {$set: { [balanceCurrency]: sum }})
+        
         resolve(resultsA)
     })
 }
