@@ -364,6 +364,11 @@ const executeCommand = async (message) => {
                     amount = getAmountFromCommand(message.body)
                 }
 
+                if (!amount) {
+                    replyToMessage(message.id, `Invalid amount. Please try again`)
+                    return
+                }
+
                 let wallet = getWalletAddress(message.body.toLowerCase())
 
                 if (parseFloat(tokenbalance) < parseFloat(amount)) {
@@ -471,6 +476,11 @@ const executeCommand = async (message) => {
                     }
                 } else {
                     amountWithdraw = getAmountFromCommand(message.body)
+                }
+
+                if (!amountWithdraw) {
+                    replyToMessage(message.id, `Invalid amount. Please try again`)
+                    return
                 }
 
                 if (parseFloat(tokenbalanceWithdraw) < parseFloat(amountWithdraw)) {
