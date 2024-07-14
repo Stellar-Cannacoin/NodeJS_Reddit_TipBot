@@ -246,6 +246,9 @@ const getTipAmount = (string) => {
         if (isNaN(string.match(regex)[1])) {
             return false
         }
+        if (isNegative(string.match(regex)[1])) {
+            return false;
+        }
         return string.match(regex)[1]
     } catch (error) {
         return false
