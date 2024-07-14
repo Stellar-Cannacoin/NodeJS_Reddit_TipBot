@@ -274,6 +274,9 @@ const getAmountFromCommand = (string) => {
     if (!string.match(regex)) {
         return false
     }
+    if (isNegative(string.match(regex)[0])) {
+        return false;
+    }
     return string.match(regex)[0]
 }
 const getFlairParams = (string) => {
